@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация пользователя</title>
+</head>
+<body>
+<h2>Форма регистрации</h2>
+<form action="/user" method="post">
+  <div>
+    <label for="name">Имя:</label>
+    <input type="text" id="name" name="name" required>
+  </div>
+  <br>
+  <div>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+  </div>
+  <br>
+  <div>
+    <label for="age">Возраст:</label>
+    <input type="number" id="age" name="age" min="1" required>
+  </div>
+  <br>
+  <div>
+    <button type="user">Зарегистрироваться</button>
+  </div>
+</form>
+</body>
+</html>

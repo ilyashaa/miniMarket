@@ -6,11 +6,25 @@ import (
 )
 
 func main() {
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
+	router := gin.Default()
+
+	router.GET("/author", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "author.html", gin.H{})
 	})
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
+	router.GET("/register", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "register.html", gin.H{})
+	})
+
+	router.POST("/user", func(c *gin.Context) {
+		name := c.PostForm("name")
+		email := c.PostForm("email")
+		age := c.PostForm("age")
+		response := "Получены данные: Имя - " + name + ", Email - " + email + ", Age - " + age
+		c.String(http.StatusOK, response)
+	})
+
+	router.LoadHTMLFiles("templates/author.html", "templates/register.html")
+
+	router.Run(":8080")
 }
