@@ -62,7 +62,7 @@ users := make(map[string]User)
         user, ok := users[email]
 
 		if !ok || strings.Compare(user.Name, name) != 0 {
-			c.String(http.StatusForbidden, "%s","Ты лох педальный")
+			c.String(http.StatusForbidden, "%s","Неверный логин или пароль")
 			return
 		}
 
