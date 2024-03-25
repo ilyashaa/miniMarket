@@ -2,27 +2,22 @@ package main
 
 import (
 	"fmt"
+
 	"net/http"
-	"strconv"
-	"strings"
+	"reflect"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/argon2"
 )
 
 type User struct {
-Name string
-Email string
-Age int
+	Login        string
+	HashPassword []byte
 }
 
-
-
 func main() {
-
-users := make(map[string]User)
-
-
-
+	users := make(map[string]User)
+	salt := []byte("salt")
 	router := gin.Default()
 
 	router.GET("/author", func(c *gin.Context) {
@@ -34,42 +29,42 @@ users := make(map[string]User)
 	})
 
 	router.GET("/user", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "%s",users)
+		ctx.String(http.StatusOK, "%s", users)
 	})
 
 	router.POST("/user", func(c *gin.Context) {
-		
-		name := c.PostForm("name")
-		email := c.PostForm("email")
-		age, _ := strconv.Atoi(c.PostForm("age"))
+
+		login := c.PostForm("login")
+		password := c.PostForm("password")
+		hashedPassword := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
 
 		user := User{
-			Name: name,
-			Email: email,
-			Age: age,
+			Login:        login,
+			HashPassword: hashedPassword,
 		}
-        users[email] = user
+		users[login] = user
 
-		response := fmt.Sprintf("Получены данные: Имя - %s , Email - %s, Age - %d ", name, email, age )
+		response := fmt.Sprintf("Получены данные: Login - %s , Password - %s", login, password)
 		c.String(http.StatusOK, response)
 	})
 
 	router.POST("/auth", func(c *gin.Context) {
-		
-		name := c.PostForm("name")
-		email := c.PostForm("email")
 
-        user, ok := users[email]
+		login := c.PostForm("login")
+		password := c.PostForm("password")
 
-		if !ok || strings.Compare(user.Name, name) != 0 {
-			c.String(http.StatusForbidden, "%s","Неверный логин или пароль")
+		user, ok := users[login]
+
+		testHashedPassword := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
+
+		if !ok || !reflect.DeepEqual(user.HashPassword, testHashedPassword) {
+			c.String(http.StatusForbidden, "%s", "Неверный логин или пароль")
 			return
 		}
 
-		response := fmt.Sprintf("Получены данные: Имя - %s , Email - %s, Age - %d ", user.Name, user.Email, user.Age)
+		response := fmt.Sprintf("Пароль подошёл к %s", user.Login)
 		c.String(http.StatusOK, response)
 	})
-	
 
 	router.LoadHTMLGlob("templates/*")
 
