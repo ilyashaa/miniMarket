@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"crypto/rand"
 	"net/http"
 	"reflect"
 
@@ -13,11 +14,12 @@ import (
 type User struct {
 	Login        string
 	HashPassword []byte
+	Salt         []byte
 }
 
 func main() {
 	users := make(map[string]User)
-	salt := []byte("salt")
+
 	router := gin.Default()
 
 	router.GET("/author", func(c *gin.Context) {
@@ -34,6 +36,10 @@ func main() {
 
 	router.POST("/user", func(c *gin.Context) {
 
+		salt, err := generateRandomBytes(16)
+		if err != nil {
+			salt = []byte("test")
+		}
 		login := c.PostForm("login")
 		password := c.PostForm("password")
 		hashedPassword := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
@@ -41,6 +47,7 @@ func main() {
 		user := User{
 			Login:        login,
 			HashPassword: hashedPassword,
+			Salt:         salt,
 		}
 		users[login] = user
 
@@ -55,7 +62,7 @@ func main() {
 
 		user, ok := users[login]
 
-		testHashedPassword := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
+		testHashedPassword := argon2.IDKey([]byte(password), user.Salt, 1, 64*1024, 4, 32)
 
 		if !ok || !reflect.DeepEqual(user.HashPassword, testHashedPassword) {
 			c.String(http.StatusForbidden, "%s", "Неверный логин или пароль")
@@ -69,4 +76,14 @@ func main() {
 	router.LoadHTMLGlob("templates/*")
 
 	router.Run(":8080")
+}
+
+func generateRandomBytes(n uint32) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
