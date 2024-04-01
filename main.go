@@ -9,6 +9,8 @@ import (
 
 func main() {
 
+	authService := auth.NewAuth()
+
 	router := gin.Default()
 
 	router.GET("/author", func(c *gin.Context) {
@@ -24,11 +26,20 @@ func main() {
 	})
 
 	router.POST("/user", func(c *gin.Context) {
-		auth.RegisterUser(c)
+		login := c.PostForm("login")
+		password := c.PostForm("password")
+		response := authService.Register(login, password)
+		c.String(http.StatusOK, response)
 	})
 
 	router.POST("/auth", func(c *gin.Context) {
-		auth.AuthorizationUser(c)
+		login := c.PostForm("login")
+		password := c.PostForm("password")
+		response := authService.Authorize(login, password)
+		if response.RequestError {
+			c.String(http.StatusOK, response.Text)
+		}
+		c.String(http.StatusForbidden, response.Text)
 	})
 
 	router.LoadHTMLGlob("templates/*")

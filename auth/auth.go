@@ -1,23 +1,41 @@
-package main
+package auth
 
 import (
 	"crypto/rand"
 	"fmt"
-	"net/http"
 	"reflect"
 
-	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/argon2"
 )
 
-func RegisterUser(c *gin.Context) {
+type User struct {
+	Login        string
+	HashPassword []byte
+	Salt         []byte
+}
+
+type Response struct {
+	RequestError bool
+	Text         string
+}
+
+type Auth struct {
+	Users map[string]User
+}
+
+func NewAuth() *Auth {
+	return &Auth{
+		Users: make(map[string]User),
+	}
+}
+
+func (auth *Auth) Register(login string, password string) string {
 
 	salt, err := generateRandomBytes(16)
 	if err != nil {
 		salt = []byte("test")
 	}
-	login := c.PostForm("login")
-	password := c.PostForm("password")
+
 	hashedPassword := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
 
 	user := User{
@@ -25,28 +43,28 @@ func RegisterUser(c *gin.Context) {
 		HashPassword: hashedPassword,
 		Salt:         salt,
 	}
-	Users[login] = user
+	auth.Users[login] = user
 
-	response := fmt.Sprintf("Получены данные: Login - %s , Password - %s", login, password)
-	c.String(http.StatusOK, response)
+	return fmt.Sprintf("Получены данные: Login - %s , Password - %s", login, password)
 
 }
 
-func AuthorizationUser(c *gin.Context) {
-	login := c.PostForm("login")
-	password := c.PostForm("password")
+func (auth *Auth) Authorize(login string, password string) Response {
 
-	user, ok := Users[login]
+	user, ok := auth.Users[login]
 
 	testHashedPassword := argon2.IDKey([]byte(password), user.Salt, 1, 64*1024, 4, 32)
 
 	if !ok || !reflect.DeepEqual(user.HashPassword, testHashedPassword) {
-		c.String(http.StatusForbidden, "%s", "Неверный логин или пароль")
-		return
+		return Response{
+			RequestError: true,
+			Text:         "Неверный логин или пароль",
+		}
 	}
-
 	response := fmt.Sprintf("Пароль подошёл к %s", user.Login)
-	c.String(http.StatusOK, response)
+	return Response{
+		Text: response,
+	}
 }
 
 func generateRandomBytes(n uint32) ([]byte, error) {
