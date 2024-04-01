@@ -22,7 +22,7 @@ func main() {
 	})
 
 	router.GET("/user", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "%s", auth.Users)
+		ctx.String(http.StatusOK, "%s")
 	})
 
 	router.POST("/user", func(c *gin.Context) {
