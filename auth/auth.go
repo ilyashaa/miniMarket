@@ -2,7 +2,7 @@ package auth
 
 import (
 	"crypto/rand"
-	"fmt"
+
 	"reflect"
 
 	"golang.org/x/crypto/argon2"
@@ -45,25 +45,27 @@ func (auth *Auth) Register(login string, password string) string {
 	}
 	auth.Users[login] = user
 
-	return fmt.Sprintf("Получены данные: Login - %s , Password - %s", login, password)
-
+	return login
 }
 
-func (auth *Auth) Authorize(login string, password string) Response {
+func (auth *Auth) Authorize(login string, password string) string {
 
 	user, ok := auth.Users[login]
 
 	testHashedPassword := argon2.IDKey([]byte(password), user.Salt, 1, 64*1024, 4, 32)
 
 	if !ok || !reflect.DeepEqual(user.HashPassword, testHashedPassword) {
-		return Response{
-			RequestError: true,
-			Text:         "Неверный логин или пароль",
-		}
+		return "*неверный логин или пароль*"
 	}
-	response := fmt.Sprintf("Пароль подошёл к %s", user.Login)
-	return Response{
-		Text: response,
+	return login
+}
+
+func (auth *Auth) CheckList(login string, password string) string {
+	_, ok := auth.Users[login]
+	if ok {
+		return auth.Authorize(login, password)
+	} else {
+		return auth.Register(login, password)
 	}
 }
 
