@@ -49,17 +49,6 @@ func main() {
 		})
 	})
 
-	// router.POST("/auth", func(c *gin.Context) {
-	// 	login := c.PostForm("login")
-	// 	password := c.PostForm("password")
-	// 	response := authService.Authorize(login, password)
-
-	// 	if response.RequestError {
-	// 		c.String(http.StatusOK, response.Text)
-	// 	}
-	// 	c.String(http.StatusForbidden, response.Text)
-	// })
-
 	router.LoadHTMLGlob("templates/*")
 
 	router.NoRoute(func(c *gin.Context) {
