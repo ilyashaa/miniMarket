@@ -11,7 +11,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column; /* Добавлено для центрирования содержимого по вертикали */
+            flex-direction: column; 
             background-color: #f0f0f0;
             color: #333;
             font-family: 'Arial', sans-serif;
@@ -21,7 +21,7 @@
             background-color: white;
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            margin-bottom: 20px; /* Добавлен отступ снизу до кнопки */
+            margin-bottom: 20px; 
         }
         .auth-button {
             padding: 10px 20px;
@@ -30,8 +30,8 @@
             border-radius: 5px;
             background-color: #007BFF;
             color: white;
-            cursor: pointer; /* Делает курсор похожим на указатель, показывая, что это кнопка */
-            text-decoration: none; /* Убираем подчеркивание текста для ссылок */
+            cursor: pointer; /
+            text-decoration: none; 
         }
         .auth-button:hover {
             background-color: #0056b3;
@@ -43,7 +43,7 @@
 <div class="message">
     Вы зарегистрированы, <strong>{{.Login}}</strong>
 </div>
-<!-- Добавлена кнопка "Авторизоваться", предполагается, что она ведет на страницу авторизации -->
+
 <a href="/user" class="auth-button">Авторизоваться</a>
 
 </body>
