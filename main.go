@@ -31,14 +31,22 @@ func main() {
 		})
 	})
 
+	router.POST("/hello", func(c *gin.Context) {
+		login := c.PostForm("login")
+		password := c.PostForm("password")
+		result := authService.Register(login, password)
+		c.HTML(http.StatusOK, "hello.html", gin.H{
+			"Login": result,
+		})
+	})
+
 	router.POST("/user", func(c *gin.Context) {
 		login := c.PostForm("login")
 		password := c.PostForm("password")
-		result := authService.CheckList(login, password)
+		result := authService.Authorize(login, password)
 		c.HTML(http.StatusOK, "user.html", gin.H{
 			"Login": result,
 		})
-		c.String(http.StatusOK, login)
 	})
 
 	// router.POST("/auth", func(c *gin.Context) {

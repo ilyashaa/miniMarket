@@ -49,25 +49,28 @@ func (auth *Auth) Register(login string, password string) string {
 }
 
 func (auth *Auth) Authorize(login string, password string) string {
-
 	user, ok := auth.Users[login]
+	if !ok {
+		return "*неверный логин или пароль*"
+	}
 
 	testHashedPassword := argon2.IDKey([]byte(password), user.Salt, 1, 64*1024, 4, 32)
 
-	if !ok || !reflect.DeepEqual(user.HashPassword, testHashedPassword) {
+	if !reflect.DeepEqual(user.HashPassword, testHashedPassword) {
 		return "*неверный логин или пароль*"
 	}
+
 	return login
 }
 
-func (auth *Auth) CheckList(login string, password string) string {
-	_, ok := auth.Users[login]
-	if ok {
-		return auth.Authorize(login, password)
-	} else {
-		return auth.Register(login, password)
-	}
-}
+// func (auth *Auth) CheckList(login string, password string) string {
+// 	if _, ok := auth.Users[login]; ok {
+// 		return auth.Authorize(login, password)
+// 	} else {
+// 		// Вместо регистрации нового пользователя возвращаем сообщение об ошибке
+// 		return "*неверный логин или пароль*"
+// 	}
+// }
 
 func generateRandomBytes(n uint32) ([]byte, error) {
 	b := make([]byte, n)
