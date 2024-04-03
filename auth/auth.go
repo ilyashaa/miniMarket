@@ -63,15 +63,6 @@ func (auth *Auth) Authorize(login string, password string) string {
 	return login
 }
 
-// func (auth *Auth) CheckList(login string, password string) string {
-// 	if _, ok := auth.Users[login]; ok {
-// 		return auth.Authorize(login, password)
-// 	} else {
-// 		// Вместо регистрации нового пользователя возвращаем сообщение об ошибке
-// 		return "*неверный логин или пароль*"
-// 	}
-// }
-
 func generateRandomBytes(n uint32) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
