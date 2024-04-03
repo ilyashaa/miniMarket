@@ -21,8 +21,8 @@ func main() {
 		c.HTML(http.StatusOK, "register.html", gin.H{})
 	})
 
-	router.GET("/product", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "product.html", gin.H{})
+	router.GET("/products", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "products.html", gin.H{})
 	})
 
 	router.GET("/user", func(c *gin.Context) {
@@ -50,6 +50,8 @@ func main() {
 	})
 
 	router.LoadHTMLGlob("templates/*")
+
+	router.Static("/static", "./static")
 
 	router.NoRoute(func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "http://localhost:8080/user")
