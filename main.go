@@ -2,6 +2,7 @@ package main
 
 import (
 	"miniMarket/auth"
+	"miniMarket/product"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,8 @@ import (
 func main() {
 
 	authService := auth.NewAuth()
+
+	productList := product.NewProduct()
 
 	router := gin.Default()
 
@@ -22,7 +25,10 @@ func main() {
 	})
 
 	router.GET("/products", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "products.html", gin.H{})
+		products := productList.LocalList()
+		c.HTML(http.StatusOK, "products.html", gin.H{
+			"products": products,
+		})
 	})
 
 	router.GET("/user", func(c *gin.Context) {
