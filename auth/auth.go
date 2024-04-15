@@ -4,12 +4,13 @@ import (
 	"crypto/rand"
 
 	"reflect"
+	"regexp"
 
 	"golang.org/x/crypto/argon2"
 )
 
 type User struct {
-	Login        string
+	Email        string
 	HashPassword []byte
 	Salt         []byte
 }
@@ -29,7 +30,13 @@ func NewAuth() *Auth {
 	}
 }
 
-func (auth *Auth) Register(login string, password string) string {
+func (auth *Auth) Register(email string, password string) string {
+
+	validMail := isValidEmail(email)
+
+	if !validMail {
+		return "Указан некорретный email. Пройдите регистрацию заново."
+	}
 
 	salt, err := generateRandomBytes(16)
 	if err != nil {
@@ -39,17 +46,17 @@ func (auth *Auth) Register(login string, password string) string {
 	hashedPassword := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
 
 	user := User{
-		Login:        login,
+		Email:        email,
 		HashPassword: hashedPassword,
 		Salt:         salt,
 	}
-	auth.Users[login] = user
+	auth.Users[email] = user
 
-	return login
+	return "Вы прошли регистрацию, " + email
 }
 
-func (auth *Auth) Authorize(login string, password string) string {
-	user, ok := auth.Users[login]
+func (auth *Auth) Authorize(email string, password string) string {
+	user, ok := auth.Users[email]
 	if !ok {
 		return "*неверный логин или пароль*"
 	}
@@ -60,7 +67,12 @@ func (auth *Auth) Authorize(login string, password string) string {
 		return "*неверный логин или пароль*"
 	}
 
-	return login
+	return email
+}
+
+func isValidEmail(email string) bool {
+	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,16}$`)
+	return emailRegex.MatchString(email)
 }
 
 func generateRandomBytes(n uint32) ([]byte, error) {

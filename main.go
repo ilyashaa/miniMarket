@@ -31,27 +31,27 @@ func main() {
 		})
 	})
 
-	router.GET("/user", func(c *gin.Context) {
+	router.GET("/home", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "user.html", gin.H{
-			"Login": "пользователь",
+			"Email": "пользователь",
 		})
 	})
 
 	router.POST("/hello", func(c *gin.Context) {
-		login := c.PostForm("login")
+		email := c.PostForm("email")
 		password := c.PostForm("password")
-		result := authService.Register(login, password)
+		result := authService.Register(email, password)
 		c.HTML(http.StatusOK, "hello.html", gin.H{
-			"Login": result,
+			"Email": result,
 		})
 	})
 
-	router.POST("/user", func(c *gin.Context) {
-		login := c.PostForm("login")
+	router.POST("/home", func(c *gin.Context) {
+		email := c.PostForm("email")
 		password := c.PostForm("password")
-		result := authService.Authorize(login, password)
-		c.HTML(http.StatusOK, "user.html", gin.H{
-			"Login": result,
+		result := authService.Authorize(email, password)
+		c.HTML(http.StatusOK, "home.html", gin.H{
+			"Email": result,
 		})
 	})
 
@@ -60,7 +60,7 @@ func main() {
 	router.Static("/static", "./static")
 
 	router.NoRoute(func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "http://localhost:8080/user")
+		c.Redirect(http.StatusMovedPermanently, "http://localhost:8080/home")
 	})
 
 	router.Run(":8080")
