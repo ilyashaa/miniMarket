@@ -4,6 +4,7 @@ import (
 	"miniMarket/auth"
 	"miniMarket/product"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +33,7 @@ func main() {
 	})
 
 	router.GET("/home", func(c *gin.Context) {
+
 		c.HTML(http.StatusOK, "user.html", gin.H{
 			"Email": "пользователь",
 		})
@@ -53,6 +55,14 @@ func main() {
 		c.HTML(http.StatusOK, "home.html", gin.H{
 			"Email": result,
 		})
+		expiration := time.Now().Add(24 * time.Hour)
+		cookie := http.Cookie{
+			Name:    email,
+			Value:   password,
+			Expires: expiration,
+		}
+		http.SetCookie(c.Writer, &cookie)
+
 	})
 
 	router.LoadHTMLGlob("templates/*")
