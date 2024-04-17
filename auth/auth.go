@@ -2,6 +2,7 @@ package auth
 
 import (
 	"crypto/rand"
+	"time"
 
 	"reflect"
 	"regexp"
@@ -13,6 +14,8 @@ type User struct {
 	Email        string
 	HashPassword []byte
 	Salt         []byte
+	Nickname     *string
+	BirthdayDate *time.Time
 }
 
 type Response struct {

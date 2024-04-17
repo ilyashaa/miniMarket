@@ -51,18 +51,30 @@ func main() {
 	router.POST("/home", func(c *gin.Context) {
 		email := c.PostForm("email")
 		password := c.PostForm("password")
+		expiration := time.Now().Add(24 * time.Hour)
+		cookie := http.Cookie{
+			Name:    "email",
+			Value:   email,
+			Expires: expiration,
+		}
+		http.SetCookie(c.Writer, &cookie)
 		result := authService.Authorize(email, password)
 		c.HTML(http.StatusOK, "home.html", gin.H{
 			"Email": result,
 		})
-		expiration := time.Now().Add(24 * time.Hour)
-		cookie := http.Cookie{
-			Name:    email,
-			Value:   password,
-			Expires: expiration,
-		}
-		http.SetCookie(c.Writer, &cookie)
 
+	})
+
+	router.GET("/user", func(c *gin.Context) {
+		emailKey, err := c.Cookie("email")
+		if err != nil {
+		}
+		userInfo := auth.NewAuth().Users[emailKey]
+		c.HTML(http.StatusOK, "user.html", gin.H{
+			"Email":     userInfo.Email,
+			"Nickname":  userInfo.Nickname,
+			"Birthdate": userInfo.BirthdayDate,
+		})
 	})
 
 	router.LoadHTMLGlob("templates/*")
