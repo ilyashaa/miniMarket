@@ -34,7 +34,7 @@ func main() {
 
 	router.GET("/home", func(c *gin.Context) {
 
-		c.HTML(http.StatusOK, "user.html", gin.H{
+		c.HTML(http.StatusOK, "home.html", gin.H{
 			"Email": "пользователь",
 		})
 	})
@@ -69,7 +69,7 @@ func main() {
 		emailKey, err := c.Cookie("email")
 		if err != nil {
 		}
-		userInfo := auth.NewAuth().Users[emailKey]
+		userInfo := authService.Users[emailKey]
 		c.HTML(http.StatusOK, "user.html", gin.H{
 			"Email":     userInfo.Email,
 			"Nickname":  userInfo.Nickname,
