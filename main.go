@@ -84,8 +84,8 @@ func main() {
 	router.POST("/user", func(c *gin.Context) {
 		email := c.PostForm("email")
 		nickname := c.PostForm("nickname")
-		birthdayDate := c.PostForm("birthdayDate")
-		authService.Update(email, nickname, birthdayDate)
+		birthDate := c.PostForm("birthDate")
+		authService.Update(email, nickname, birthDate)
 		c.Redirect(http.StatusSeeOther, "http://localhost:8080/user")
 	})
 

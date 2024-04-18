@@ -83,7 +83,7 @@ func (auth *Auth) Update(email string, nickname string, birthdayDate string) {
 	if birthdayDate != "" {
 		t, err := time.Parse("2006-01-02", birthdayDate)
 		if err != nil {
-
+			panic(err)
 		}
 		user.BirthdayDate = t
 	}
@@ -103,5 +103,3 @@ func generateRandomBytes(n uint32) ([]byte, error) {
 
 	return b, nil
 }
-
-//test
