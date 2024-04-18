@@ -13,6 +13,8 @@ func main() {
 
 	authService := auth.NewAuth()
 
+	authService.Register("123@mail.ru", "sex")
+
 	productList := product.NewProduct()
 
 	router := gin.Default()
@@ -68,6 +70,8 @@ func main() {
 	router.GET("/user", func(c *gin.Context) {
 		emailKey, err := c.Cookie("email")
 		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
 		}
 		userInfo := authService.Users[emailKey]
 		c.HTML(http.StatusOK, "user.html", gin.H{
@@ -75,6 +79,14 @@ func main() {
 			"Nickname":  userInfo.Nickname,
 			"Birthdate": userInfo.BirthdayDate,
 		})
+	})
+
+	router.POST("/user", func(c *gin.Context) {
+		email := c.PostForm("email")
+		nickname := c.PostForm("nickname")
+		birthdayDate := c.PostForm("birthdayDate")
+		authService.Update(email, nickname, birthdayDate)
+		c.Redirect(http.StatusSeeOther, "http://localhost:8080/user")
 	})
 
 	router.LoadHTMLGlob("templates/*")

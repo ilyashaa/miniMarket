@@ -14,8 +14,8 @@ type User struct {
 	Email        string
 	HashPassword []byte
 	Salt         []byte
-	Nickname     *string
-	BirthdayDate *time.Time
+	Nickname     string
+	BirthdayDate time.Time
 }
 
 type Response struct {
@@ -24,12 +24,12 @@ type Response struct {
 }
 
 type Auth struct {
-	Users map[string]User
+	Users map[string]*User
 }
 
 func NewAuth() *Auth {
 	return &Auth{
-		Users: make(map[string]User),
+		Users: make(map[string]*User),
 	}
 }
 
@@ -53,7 +53,7 @@ func (auth *Auth) Register(email string, password string) string {
 		HashPassword: hashedPassword,
 		Salt:         salt,
 	}
-	auth.Users[email] = user
+	auth.Users[email] = &user
 
 	return "Вы прошли регистрацию, " + email
 }
@@ -71,6 +71,22 @@ func (auth *Auth) Authorize(email string, password string) string {
 	}
 
 	return email
+}
+
+func (auth *Auth) Update(email string, nickname string, birthdayDate string) {
+	user := auth.Users[email]
+
+	if nickname != "" {
+		user.Nickname = nickname
+	}
+
+	if birthdayDate != "" {
+		t, err := time.Parse("2006-01-02", birthdayDate)
+		if err != nil {
+
+		}
+		user.BirthdayDate = t
+	}
 }
 
 func isValidEmail(email string) bool {
