@@ -1,36 +1,31 @@
 package product
 
+import "database/sql"
+
 type Product struct {
 	Name  string
 	Price float32
 	Image string
 }
 
-type ListProduct struct {
-	Products []Product
-}
-
-func NewProduct() *ListProduct {
-	products := &ListProduct{
-		Products: []Product{},
+func LocalProduct(db sql.DB) ([]Product, error) {
+	rows, err := db.Query("SELECT name, price, image FROM products")
+	if err != nil {
+		return nil, err
 	}
-	products.initProducts()
-	return products
-}
+	defer rows.Close()
 
-func (lp *ListProduct) initProducts() {
-	lp.AddProduct(Product{Name: "Яблоко", Price: 27.8, Image: "static/images/apple.svg"})
-	lp.AddProduct(Product{Name: "Банан", Price: 23.5, Image: "static/images/banana.svg"})
-	lp.AddProduct(Product{Name: "Виноград", Price: 23.5, Image: "static/images/grapes.svg"})
-	lp.AddProduct(Product{Name: "Апельсин", Price: 23.5, Image: "static/images/orange.svg"})
-	lp.AddProduct(Product{Name: "Груша", Price: 23.5, Image: "static/images/peach.svg"})
-	lp.AddProduct(Product{Name: "Арбуз", Price: 23.5, Image: "static/images/watermelon.svg"})
-}
+	var products []Product
+	for rows.Next() {
+		var p Product
+		if err := rows.Scan(&p.Name, &p.Price, &p.Image); err != nil {
+			return nil, err
+		}
+		products = append(products, p)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return products, nil
 
-func (lp *ListProduct) AddProduct(p Product) {
-	lp.Products = append(lp.Products, p)
-}
-
-func (lp *ListProduct) LocalList() []Product {
-	return lp.Products
 }

@@ -1,21 +1,44 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
+	"log"
 	"miniMarket/auth"
 	"miniMarket/product"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
 func main() {
 
+	const (
+		host     = "localhost"
+		port     = 5432
+		user     = "admin"
+		password = "12345"
+		dbname   = "postgres"
+	)
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	authService := auth.NewAuth()
-
-	authService.Register("123@mail.ru", "sex")
-
-	productList := product.NewProduct()
 
 	router := gin.Default()
 
@@ -28,7 +51,10 @@ func main() {
 	})
 
 	router.GET("/products", func(c *gin.Context) {
-		products := productList.LocalList()
+		products, err := product.LocalProduct(*db)
+		if err != nil {
+			return
+		}
 		c.HTML(http.StatusOK, "products.html", gin.H{
 			"products": products,
 		})

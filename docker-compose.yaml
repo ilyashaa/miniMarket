@@ -1,11 +1,11 @@
-version: '3.5'
+version: '3.8'
 
 services:
-  mini_market:
-   container_name: mini_market
-   ports:
-     - "5432:5432"
-   environment: 
-    - POSTGRES_PASSWORD=root
-    - POSTGRES_USER=admin
-   image: postgres:alpine3.19
+  db_miniMarket:
+    container_name: miniMarket
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_USER: admin
+    image: postgres:16.2-alpine3.19
