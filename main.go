@@ -70,7 +70,7 @@ func main() {
 	router.POST("/hello", func(c *gin.Context) {
 		email := c.PostForm("email")
 		password := c.PostForm("password")
-		result := authService.Register(email, password)
+		result := authService.Register(email, password, *db)
 		c.HTML(http.StatusOK, "hello.html", gin.H{
 			"Email": result,
 		})

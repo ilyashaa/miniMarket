@@ -2,11 +2,13 @@ package auth
 
 import (
 	"crypto/rand"
-	"time"
-
+	"database/sql"
+	"log"
 	"reflect"
 	"regexp"
+	"time"
 
+	"github.com/alexedwards/argon2id"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -33,7 +35,7 @@ func NewAuth() *Auth {
 	}
 }
 
-func (auth *Auth) Register(email string, password string) string {
+func (auth *Auth) Register(email string, password string, db sql.DB) string {
 
 	validMail := isValidEmail(email)
 
@@ -46,14 +48,29 @@ func (auth *Auth) Register(email string, password string) string {
 		salt = []byte("test")
 	}
 
-	hashedPassword := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
-
-	user := User{
-		Email:        email,
-		HashPassword: hashedPassword,
-		Salt:         salt,
+	hash, err := argon2id.CreateHash("pa$$word", argon2id.DefaultParams)
+	if err != nil {
+		log.Fatal(err)
 	}
-	auth.Users[email] = &user
+
+	hashedPassword := argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
+	basePassword := string(hashedPassword)
+
+	// user := User{
+	// 	Email:        email,
+	// 	HashPassword: hashedPassword,
+	// 	Salt:         salt,
+	// }
+	// auth.Users[email] = &user
+
+	sqlStatement := `
+    INSERT INTO users (email, password, salt)
+    VALUES ($1, $2, $3);`
+
+	errSQL := db.QueryRow(sqlStatement, email, basePassword, salt).Scan()
+	if errSQL != nil {
+		return "Не получилось передать данные на сервес"
+	}
 
 	return "Вы прошли регистрацию, " + email
 }
