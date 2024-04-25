@@ -86,7 +86,7 @@ func main() {
 			Expires: expiration,
 		}
 		http.SetCookie(c.Writer, &cookie)
-		result := authService.Authorize(email, password)
+		result := authService.Authorize(email, password, *db)
 		c.HTML(http.StatusOK, "home.html", gin.H{
 			"Email": result,
 		})
@@ -99,11 +99,40 @@ func main() {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		userInfo := authService.Users[emailKey]
+		query := `SELECT email, nickname, birthdaydate FROM users WHERE email = $1`
+
+		rows, err := db.Query(query, emailKey)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		defer rows.Close()
+		var sqlEmail, sqlNickname, sqlBirthdayDate *string
+
+		for rows.Next() {
+			err = rows.Scan(&sqlEmail, &sqlNickname, &sqlBirthdayDate)
+			if err != nil {
+				c.AbortWithError(http.StatusBadRequest, err)
+				return
+			}
+
+		}
+		if sqlBirthdayDate == nil {
+			c.HTML(http.StatusOK, "user.html", gin.H{
+				"Email":    sqlEmail,
+				"Nickname": sqlNickname,
+			})
+			return
+		}
+		birthdayDate, err := time.Parse("2006-01-02", *sqlBirthdayDate)
+		if err != nil {
+			return
+		}
 		c.HTML(http.StatusOK, "user.html", gin.H{
-			"Email":     userInfo.Email,
-			"Nickname":  userInfo.Nickname,
-			"Birthdate": userInfo.BirthdayDate,
+			"Email":        sqlEmail,
+			"Nickname":     sqlNickname,
+			"BirthdayDate": birthdayDate,
 		})
 	})
 

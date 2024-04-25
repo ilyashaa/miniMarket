@@ -14,7 +14,6 @@ func LocalProduct(db sql.DB) ([]Product, error) {
 		return nil, err
 	}
 	defer rows.Close()
-
 	var products []Product
 	for rows.Next() {
 		var p Product
