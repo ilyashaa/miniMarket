@@ -14,8 +14,6 @@ import (
 
 func main() {
 
-	userDB.StartSQL()
-
 	authService := auth.NewAuth()
 
 	router := gin.Default()
@@ -78,7 +76,7 @@ func main() {
 			return
 		}
 
-		sqlEmail, sqlNickname, sqlBirthdayDate, err := userDB.SelectInfoSQL(emailKey)
+		sqlEmail, sqlNickname, sqlBirthdayDate, err := userDB.NewUserStore().SelectInfoSQL(emailKey)
 		if err != nil {
 			log.Fatal(err)
 		}

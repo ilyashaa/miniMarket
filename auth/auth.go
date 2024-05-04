@@ -2,7 +2,7 @@ package auth
 
 import (
 	"log"
-	store "miniMarket/db/store"
+	"miniMarket/db/store"
 	"regexp"
 	"time"
 
@@ -22,12 +22,12 @@ type Response struct {
 }
 
 type Auth struct {
-	Users map[string]*User
+	UserStore *store.UserStore
 }
 
 func NewAuth() *Auth {
 	return &Auth{
-		Users: make(map[string]*User),
+		UserStore: store.NewUserStore(),
 	}
 }
 
@@ -44,7 +44,7 @@ func (auth *Auth) Register(email string, password string) string {
 		// log.Fatal(err)
 	}
 
-	result, err := store.RegisterSQL(email, passwordHash)
+	result, err := auth.UserStore.RegisterSQL(email, passwordHash)
 	if err != nil {
 		// log.Fatal(err)
 		return result
@@ -53,9 +53,9 @@ func (auth *Auth) Register(email string, password string) string {
 	return result
 }
 
-func (auth *Auth) Authorize(email string, password string) string {
+func (auth *Auth) Authorize(email, password string) string {
 
-	sqlPassword, err := store.AuthorizeSQL(email, password)
+	sqlPassword, err := auth.UserStore.AuthorizeSQL(email, password)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,20 +72,20 @@ func (auth *Auth) Authorize(email string, password string) string {
 	return email
 }
 
-func (auth *Auth) Update(email string, nickname string, birthdayDate string) {
-	user := auth.Users[email]
+func (auth *Auth) Update(email, nickname, birthdayDate string) {
+	// user := auth.Users[email]
 
-	if nickname != "" {
-		user.Nickname = nickname
-	}
+	// if nickname != "" {
+	// 	user.Nickname = nickname
+	// }
 
-	if birthdayDate != "" {
-		t, err := time.Parse("2006-01-02", birthdayDate)
-		if err != nil {
-			panic(err)
-		}
-		user.BirthdayDate = t
-	}
+	// if birthdayDate != "" {
+	// 	t, err := time.Parse("2006-01-02", birthdayDate)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	user.BirthdayDate = t
+	// }
 }
 
 func isValidEmail(email string) bool {

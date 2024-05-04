@@ -1,4 +1,4 @@
-package userDB
+package store
 
 import (
 	"database/sql"
@@ -6,7 +6,11 @@ import (
 	"log"
 )
 
-func StartSQL() *sql.DB {
+type UserStore struct {
+	db *sql.DB
+}
+
+func NewUserStore() *UserStore {
 	const (
 		host     = "localhost"
 		port     = 5432
@@ -23,18 +27,20 @@ func StartSQL() *sql.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
 		log.Fatal(err)
 	}
-	return db
+
+	return &UserStore{db: db}
 }
 
-func RegisterSQL(email string, passwordHash string) (string, error) {
+func (store *UserStore) RegisterSQL(email string, passwordHash string) (string, error) {
 
-	db := StartSQL()
+	db := store.db
+
+	defer db.Close()
 
 	sqlStatement := `
     INSERT INTO users (email, password)
@@ -53,9 +59,11 @@ func RegisterSQL(email string, passwordHash string) (string, error) {
 	return "Вы прошли регистрацию, " + email, nil
 }
 
-func AuthorizeSQL(email string, password string) (string, error) {
+func (store *UserStore) AuthorizeSQL(email string, password string) (string, error) {
 
-	db := StartSQL()
+	db := store.db
+
+	defer db.Close()
 
 	query := `SELECT Email, Password FROM users WHERE email = $1`
 
@@ -78,9 +86,11 @@ func AuthorizeSQL(email string, password string) (string, error) {
 	return sqlPassword, nil
 }
 
-func SelectInfoSQL(emailKey string) (string, string, string, error) {
+func (store *UserStore) SelectInfoSQL(emailKey string) (string, string, string, error) {
 
-	db := StartSQL()
+	db := store.db
+
+	defer db.Close()
 
 	query := `SELECT email, nickname, birthdaydate FROM users WHERE email = $1`
 
