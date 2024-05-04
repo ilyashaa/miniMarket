@@ -8,7 +8,9 @@ type Product struct {
 	Image string
 }
 
-func LocalProduct(db sql.DB) ([]Product, error) {
+var db *sql.DB
+
+func LocalProduct() ([]Product, error) {
 	rows, err := db.Query("SELECT name, price, image FROM products")
 	if err != nil {
 		return nil, err

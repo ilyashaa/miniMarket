@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"database/sql"
 	"log"
+	userStore "miniMarket/db/store"
 	"regexp"
 	"time"
 
@@ -31,7 +31,7 @@ func NewAuth() *Auth {
 	}
 }
 
-func (auth *Auth) Register(email string, password string, db sql.DB) string {
+func (auth *Auth) Register(email string, password string) string {
 
 	validMail := isValidEmail(email)
 
@@ -41,53 +41,32 @@ func (auth *Auth) Register(email string, password string, db sql.DB) string {
 
 	passwordHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
-		log.Fatal(err)
+		// log.Fatal(err)
 	}
 
-	sqlStatement := `
-    INSERT INTO users (email, password)
-    VALUES ($1, $2);`
-
-	result, err := db.Exec(sqlStatement, email, passwordHash)
+	result, err := userStore.RegisterSQL(email, passwordHash)
 	if err != nil {
-		log.Fatal(err)
-		return "Не получилось передать данные на сервер."
+		// log.Fatal(err)
+		return result
 	}
 
-	_, err = result.RowsAffected()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return "Вы прошли регистрацию, " + email
+	return result
 }
 
-func (auth *Auth) Authorize(email string, password string, db sql.DB) string {
-	query := `SELECT Email, Password FROM users WHERE email = $1`
+func (auth *Auth) Authorize(email string, password string) string {
 
-	rows, err := db.Query(query, email)
+	sqlPassword, err := userStore.AuthorizeSQL(email, password)
 	if err != nil {
-		return "Не удалось получить данные"
+		log.Fatal(err)
 	}
 
-	defer rows.Close()
-	var sqlEmail string
-	var sqlPassword string
+	match, err := argon2id.ComparePasswordAndHash(password, sqlPassword)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	for rows.Next() {
-		err = rows.Scan(&sqlEmail, &sqlPassword)
-		if err != nil {
-			return "Не удалось расшифровать данные"
-		}
-
-		match, err := argon2id.ComparePasswordAndHash(password, sqlPassword)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if !match {
-			return "Неверный логин или пароль"
-		}
+	if !match {
+		return "Неверный логин или пароль"
 	}
 
 	return email
