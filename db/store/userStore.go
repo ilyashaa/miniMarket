@@ -6,9 +6,7 @@ import (
 	"log"
 )
 
-var db *sql.DB
-
-func StartSQL() {
+func StartSQL() *sql.DB {
 	const (
 		host     = "localhost"
 		port     = 5432
@@ -21,8 +19,7 @@ func StartSQL() {
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	var err error
-	db, err = sql.Open("postgres", psqlInfo)
+	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,9 +29,12 @@ func StartSQL() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	return db
 }
 
 func RegisterSQL(email string, passwordHash string) (string, error) {
+
+	db := StartSQL()
 
 	sqlStatement := `
     INSERT INTO users (email, password)
@@ -54,6 +54,9 @@ func RegisterSQL(email string, passwordHash string) (string, error) {
 }
 
 func AuthorizeSQL(email string, password string) (string, error) {
+
+	db := StartSQL()
+
 	query := `SELECT Email, Password FROM users WHERE email = $1`
 
 	rows, err := db.Query(query, email)
@@ -76,6 +79,9 @@ func AuthorizeSQL(email string, password string) (string, error) {
 }
 
 func SelectInfoSQL(emailKey string) (string, string, string, error) {
+
+	db := StartSQL()
+
 	query := `SELECT email, nickname, birthdaydate FROM users WHERE email = $1`
 
 	rows, err := db.Query(query, emailKey)

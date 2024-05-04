@@ -2,7 +2,7 @@ package auth
 
 import (
 	"log"
-	userStore "miniMarket/db/store"
+	store "miniMarket/db/store"
 	"regexp"
 	"time"
 
@@ -44,7 +44,7 @@ func (auth *Auth) Register(email string, password string) string {
 		// log.Fatal(err)
 	}
 
-	result, err := userStore.RegisterSQL(email, passwordHash)
+	result, err := store.RegisterSQL(email, passwordHash)
 	if err != nil {
 		// log.Fatal(err)
 		return result
@@ -55,7 +55,7 @@ func (auth *Auth) Register(email string, password string) string {
 
 func (auth *Auth) Authorize(email string, password string) string {
 
-	sqlPassword, err := userStore.AuthorizeSQL(email, password)
+	sqlPassword, err := store.AuthorizeSQL(email, password)
 	if err != nil {
 		log.Fatal(err)
 	}
