@@ -80,13 +80,13 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if sqlBirthdayDate == "" {
-			c.HTML(http.StatusOK, "user.html", gin.H{
-				"Email":    sqlEmail,
-				"Nickname": sqlNickname,
-			})
-			return
-		}
+		// if sqlBirthdayDate == "" {
+		// 	c.HTML(http.StatusOK, "user.html", gin.H{
+		// 		"Email":    sqlEmail,
+		// 		"Nickname": sqlNickname,
+		// 	})
+		// 	return
+		// }
 		birthdayDate, err := time.Parse("2006-01-02", sqlBirthdayDate)
 		if err != nil {
 			return

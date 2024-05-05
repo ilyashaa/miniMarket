@@ -40,13 +40,11 @@ func (store *UserStore) RegisterSQL(email string, passwordHash string) (string, 
 
 	db := store.db
 
-	defer db.Close()
-
-	sqlStatement := `
+	query := `
     INSERT INTO users (email, password)
     VALUES ($1, $2);`
 
-	result, err := db.Exec(sqlStatement, email, passwordHash)
+	result, err := db.Exec(query, email, passwordHash)
 	if err != nil {
 		return "Не получилось передать данные на сервер!", err
 	}
@@ -55,15 +53,13 @@ func (store *UserStore) RegisterSQL(email string, passwordHash string) (string, 
 	if err != nil {
 		return "Не получилось передать данные на сервер.", err
 	}
-
+	db.Close()
 	return "Вы прошли регистрацию, " + email, nil
 }
 
 func (store *UserStore) AuthorizeSQL(email string, password string) (string, error) {
 
 	db := store.db
-
-	defer db.Close()
 
 	query := `SELECT Email, Password FROM users WHERE email = $1`
 
@@ -83,14 +79,14 @@ func (store *UserStore) AuthorizeSQL(email string, password string) (string, err
 		}
 
 	}
+	db.Close()
 	return sqlPassword, nil
+
 }
 
 func (store *UserStore) SelectInfoSQL(emailKey string) (string, string, string, error) {
 
 	db := store.db
-
-	defer db.Close()
 
 	query := `SELECT email, nickname, birthdaydate FROM users WHERE email = $1`
 
@@ -108,6 +104,28 @@ func (store *UserStore) SelectInfoSQL(emailKey string) (string, string, string, 
 			return "", "", "", err
 		}
 	}
-
+	if sqlBirthdayDate == "" {
+		sqlBirthdayDate = "01.06.2000"
+	}
+	db.Close()
 	return sqlEmail, sqlNickname, sqlBirthdayDate, nil
+}
+
+func (store *UserStore) UpdateInfoSQL(email, nickname, birthdayDate string) {
+	db := store.db
+
+	defer db.Close()
+
+	query := `
+    UPDATE users SET nickname = $1, birthdayDate = $2 WHERE email = $3`
+
+	result, err := db.Exec(query, nickname, birthdayDate, email)
+	if err != nil {
+		// return "Не получилось передать данные на сервер!", err
+	}
+
+	_, err = result.RowsAffected()
+	if err != nil {
+		// return "Не получилось передать данные на сервер.", err
+	}
 }

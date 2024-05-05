@@ -41,12 +41,12 @@ func (auth *Auth) Register(email string, password string) string {
 
 	passwordHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
-		// log.Fatal(err)
+		log.Fatal(err)
 	}
 
 	result, err := auth.UserStore.RegisterSQL(email, passwordHash)
 	if err != nil {
-		// log.Fatal(err)
+		log.Fatal(err)
 		return result
 	}
 
