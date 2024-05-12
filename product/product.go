@@ -1,6 +1,6 @@
 package product
 
-import "database/sql"
+import "miniMarket/db/store"
 
 type Product struct {
 	Name  string
@@ -8,25 +8,7 @@ type Product struct {
 	Image string
 }
 
-var db *sql.DB
-
 func LocalProduct() ([]Product, error) {
-	rows, err := db.Query("SELECT name, price, image FROM products")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var products []Product
-	for rows.Next() {
-		var p Product
-		if err := rows.Scan(&p.Name, &p.Price, &p.Image); err != nil {
-			return nil, err
-		}
-		products = append(products, p)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return products, nil
-
+	result, err := store.GetProduct()
+	return result, err
 }

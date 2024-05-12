@@ -16,6 +16,9 @@ func main() {
 
 	authService := auth.NewAuth()
 
+	userStore := userDB.NewUserStore()
+	defer userStore.Close()
+
 	router := gin.Default()
 
 	router.GET("/author", func(c *gin.Context) {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"miniMarket/product"
 )
 
 type UserStore struct {
@@ -36,6 +37,12 @@ func NewUserStore() *UserStore {
 	return &UserStore{db: db}
 }
 
+func (store *UserStore) Close() {
+	if store.db != nil {
+		store.db.Close()
+	}
+}
+
 func (store *UserStore) RegisterSQL(email string, passwordHash string) (string, error) {
 
 	db := store.db
@@ -53,7 +60,7 @@ func (store *UserStore) RegisterSQL(email string, passwordHash string) (string, 
 	if err != nil {
 		return "Не получилось передать данные на сервер.", err
 	}
-	db.Close()
+
 	return "Вы прошли регистрацию, " + email, nil
 }
 
@@ -79,7 +86,7 @@ func (store *UserStore) AuthorizeSQL(email string, password string) (string, err
 		}
 
 	}
-	db.Close()
+
 	return sqlPassword, nil
 
 }
@@ -107,14 +114,12 @@ func (store *UserStore) SelectInfoSQL(emailKey string) (string, string, string, 
 	if sqlBirthdayDate == "" {
 		sqlBirthdayDate = "01.06.2000"
 	}
-	db.Close()
+
 	return sqlEmail, sqlNickname, sqlBirthdayDate, nil
 }
 
 func (store *UserStore) UpdateInfoSQL(email, nickname, birthdayDate string) {
 	db := store.db
-
-	defer db.Close()
 
 	query := `
     UPDATE users SET nickname = $1, birthdayDate = $2 WHERE email = $3`
@@ -128,4 +133,28 @@ func (store *UserStore) UpdateInfoSQL(email, nickname, birthdayDate string) {
 	if err != nil {
 		// return "Не получилось передать данные на сервер.", err
 	}
+}
+
+func (store *UserStore) GetProduct() ([]product.Product, error) {
+
+	db := store.db
+	rows, err := db.Query("SELECT name, price, image FROM products")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var products []product.Product
+	for rows.Next() {
+		var p product.Product
+		if err := rows.Scan(&p.Name, &p.Price, &p.Image); err != nil {
+			return nil, err
+		}
+		products = append(products, p)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return products, nil
+
 }
