@@ -2,50 +2,9 @@ package store
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
-	"miniMarket/product"
 )
 
-type UserStore struct {
-	db *sql.DB
-}
-
-func NewUserStore() *UserStore {
-	const (
-		host     = "localhost"
-		port     = 5432
-		user     = "admin"
-		password = "12345"
-		dbname   = "postgres"
-	)
-
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return &UserStore{db: db}
-}
-
-func (store *UserStore) Close() {
-	if store.db != nil {
-		store.db.Close()
-	}
-}
-
-func (store *UserStore) RegisterSQL(email string, passwordHash string) (string, error) {
-
-	db := store.db
+func RegisterSQL(email string, passwordHash string, db *sql.DB) (string, error) {
 
 	query := `
     INSERT INTO users (email, password)
@@ -64,9 +23,7 @@ func (store *UserStore) RegisterSQL(email string, passwordHash string) (string, 
 	return "Вы прошли регистрацию, " + email, nil
 }
 
-func (store *UserStore) AuthorizeSQL(email string, password string) (string, error) {
-
-	db := store.db
+func AuthorizeSQL(email string, password string, db *sql.DB) (string, error) {
 
 	query := `SELECT Email, Password FROM users WHERE email = $1`
 
@@ -91,9 +48,7 @@ func (store *UserStore) AuthorizeSQL(email string, password string) (string, err
 
 }
 
-func (store *UserStore) SelectInfoSQL(emailKey string) (string, string, string, error) {
-
-	db := store.db
+func SelectInfoSQL(emailKey string, db *sql.DB) (string, string, string, error) {
 
 	query := `SELECT email, nickname, birthdaydate FROM users WHERE email = $1`
 
@@ -118,8 +73,7 @@ func (store *UserStore) SelectInfoSQL(emailKey string) (string, string, string, 
 	return sqlEmail, sqlNickname, sqlBirthdayDate, nil
 }
 
-func (store *UserStore) UpdateInfoSQL(email, nickname, birthdayDate string) {
-	db := store.db
+func UpdateInfoSQL(email, nickname, birthdayDate string, db *sql.DB) {
 
 	query := `
     UPDATE users SET nickname = $1, birthdayDate = $2 WHERE email = $3`
@@ -135,26 +89,25 @@ func (store *UserStore) UpdateInfoSQL(email, nickname, birthdayDate string) {
 	}
 }
 
-func (store *UserStore) GetProduct() ([]product.Product, error) {
+// func GetProduct(db *sql.DB) ([]product.Product, error) {
 
-	db := store.db
-	rows, err := db.Query("SELECT name, price, image FROM products")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var products []product.Product
-	for rows.Next() {
-		var p product.Product
-		if err := rows.Scan(&p.Name, &p.Price, &p.Image); err != nil {
-			return nil, err
-		}
-		products = append(products, p)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
+// 	rows, err := db.Query("SELECT name, price, image FROM products")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer rows.Close()
+// 	var products []product.Product
+// 	for rows.Next() {
+// 		var p product.Product
+// 		if err := rows.Scan(&p.Name, &p.Price, &p.Image); err != nil {
+// 			return nil, err
+// 		}
+// 		products = append(products, p)
+// 	}
+// 	if err = rows.Err(); err != nil {
+// 		return nil, err
+// 	}
 
-	return products, nil
+// 	return products, nil
 
-}
+// }

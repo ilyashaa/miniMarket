@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"miniMarket/auth"
 	userDB "miniMarket/db/store"
@@ -14,10 +16,9 @@ import (
 
 func main() {
 
-	authService := auth.NewAuth()
+	db := StartDB()
 
-	userStore := userDB.NewUserStore()
-	defer userStore.Close()
+	defer db.Close()
 
 	router := gin.Default()
 
@@ -30,7 +31,7 @@ func main() {
 	})
 
 	router.GET("/products", func(c *gin.Context) {
-		products, err := product.LocalProduct()
+		products, err := product.LocalProduct(db)
 		if err != nil {
 			return
 		}
@@ -49,7 +50,7 @@ func main() {
 	router.POST("/hello", func(c *gin.Context) {
 		email := c.PostForm("email")
 		password := c.PostForm("password")
-		result := authService.Register(email, password)
+		result := auth.Register(email, password, db)
 		c.HTML(http.StatusOK, "hello.html", gin.H{
 			"Email": result,
 		})
@@ -65,7 +66,7 @@ func main() {
 			Expires: expiration,
 		}
 		http.SetCookie(c.Writer, &cookie)
-		result := authService.Authorize(email, password)
+		result := auth.Authorize(email, password, db)
 		c.HTML(http.StatusOK, "home.html", gin.H{
 			"Email": result,
 		})
@@ -79,17 +80,10 @@ func main() {
 			return
 		}
 
-		sqlEmail, sqlNickname, sqlBirthdayDate, err := userDB.NewUserStore().SelectInfoSQL(emailKey)
+		sqlEmail, sqlNickname, sqlBirthdayDate, err := userDB.SelectInfoSQL(emailKey, db)
 		if err != nil {
 			log.Fatal(err)
 		}
-		// if sqlBirthdayDate == "" {
-		// 	c.HTML(http.StatusOK, "user.html", gin.H{
-		// 		"Email":    sqlEmail,
-		// 		"Nickname": sqlNickname,
-		// 	})
-		// 	return
-		// }
 		birthdayDate, err := time.Parse("2006-01-02", sqlBirthdayDate)
 		if err != nil {
 			return
@@ -105,7 +99,7 @@ func main() {
 		email := c.PostForm("email")
 		nickname := c.PostForm("nickname")
 		birthDate := c.PostForm("birthDate")
-		authService.Update(email, nickname, birthDate)
+		auth.Update(email, nickname, birthDate, db)
 		c.Redirect(http.StatusSeeOther, "http://localhost:8080/user")
 	})
 
@@ -118,4 +112,30 @@ func main() {
 	})
 
 	router.Run(":8080")
+}
+
+func StartDB() *sql.DB {
+	const (
+		host     = "localhost"
+		port     = 5432
+		user     = "admin"
+		password = "12345"
+		dbname   = "postgres"
+	)
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return db
 }

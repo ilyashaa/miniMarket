@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"database/sql"
 	"log"
 	"miniMarket/db/store"
 	"regexp"
@@ -21,17 +22,13 @@ type Response struct {
 	Text         string
 }
 
-type Auth struct {
-	UserStore *store.UserStore
-}
+// func NewAuth() *Auth {
+// 	return &Auth{
+// 		UserStore: store.NewUserStore(),
+// 	}
+// }
 
-func NewAuth() *Auth {
-	return &Auth{
-		UserStore: store.NewUserStore(),
-	}
-}
-
-func (auth *Auth) Register(email string, password string) string {
+func Register(email string, password string, db *sql.DB) string {
 
 	validMail := isValidEmail(email)
 
@@ -44,7 +41,7 @@ func (auth *Auth) Register(email string, password string) string {
 		log.Fatal(err)
 	}
 
-	result, err := auth.UserStore.RegisterSQL(email, passwordHash)
+	result, err := store.RegisterSQL(email, passwordHash, db)
 	if err != nil {
 		log.Fatal(err)
 		return result
@@ -53,9 +50,9 @@ func (auth *Auth) Register(email string, password string) string {
 	return result
 }
 
-func (auth *Auth) Authorize(email, password string) string {
+func Authorize(email, password string, db *sql.DB) string {
 
-	sqlPassword, err := auth.UserStore.AuthorizeSQL(email, password)
+	sqlPassword, err := store.AuthorizeSQL(email, password, db)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,7 +69,7 @@ func (auth *Auth) Authorize(email, password string) string {
 	return email
 }
 
-func (auth *Auth) Update(email, nickname, birthdayDate string) {
+func Update(email, nickname, birthdayDate string, db *sql.DB) {
 	// user := auth.Users[email]
 
 	// if nickname != "" {
