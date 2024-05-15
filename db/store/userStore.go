@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"log"
 )
 
 func RegisterSQL(email string, passwordHash string, db *sql.DB) (string, error) {
@@ -66,9 +67,6 @@ func SelectInfoSQL(emailKey string, db *sql.DB) (string, string, string, error) 
 			return "", "", "", err
 		}
 	}
-	if sqlBirthdayDate == "" {
-		sqlBirthdayDate = "01.06.2000"
-	}
 
 	return sqlEmail, sqlNickname, sqlBirthdayDate, nil
 }
@@ -80,34 +78,11 @@ func UpdateInfoSQL(email, nickname, birthdayDate string, db *sql.DB) {
 
 	result, err := db.Exec(query, nickname, birthdayDate, email)
 	if err != nil {
-		// return "Не получилось передать данные на сервер!", err
+		log.Fatal(err)
 	}
 
 	_, err = result.RowsAffected()
 	if err != nil {
-		// return "Не получилось передать данные на сервер.", err
+		log.Fatal(err)
 	}
 }
-
-// func GetProduct(db *sql.DB) ([]product.Product, error) {
-
-// 	rows, err := db.Query("SELECT name, price, image FROM products")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-// 	var products []product.Product
-// 	for rows.Next() {
-// 		var p product.Product
-// 		if err := rows.Scan(&p.Name, &p.Price, &p.Image); err != nil {
-// 			return nil, err
-// 		}
-// 		products = append(products, p)
-// 	}
-// 	if err = rows.Err(); err != nil {
-// 		return nil, err
-// 	}
-
-// 	return products, nil
-
-// }

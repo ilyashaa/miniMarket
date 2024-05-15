@@ -84,10 +84,12 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		birthdayDate, err := time.Parse("2006-01-02", sqlBirthdayDate)
+		birthdayDate, err := time.Parse(time.RFC3339, sqlBirthdayDate)
 		if err != nil {
+			fmt.Println("Ошибка при парсинге даты:", err)
 			return
 		}
+
 		c.HTML(http.StatusOK, "user.html", gin.H{
 			"Email":        sqlEmail,
 			"Nickname":     sqlNickname,
@@ -98,8 +100,8 @@ func main() {
 	router.POST("/user", func(c *gin.Context) {
 		email := c.PostForm("email")
 		nickname := c.PostForm("nickname")
-		birthDate := c.PostForm("birthDate")
-		auth.Update(email, nickname, birthDate, db)
+		birthDate := c.PostForm("birthdayDate")
+		userDB.UpdateInfoSQL(email, nickname, birthDate, db)
 		c.Redirect(http.StatusSeeOther, "http://localhost:8080/user")
 	})
 

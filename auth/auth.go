@@ -22,12 +22,6 @@ type Response struct {
 	Text         string
 }
 
-// func NewAuth() *Auth {
-// 	return &Auth{
-// 		UserStore: store.NewUserStore(),
-// 	}
-// }
-
 func Register(email string, password string, db *sql.DB) string {
 
 	validMail := isValidEmail(email)
@@ -67,22 +61,6 @@ func Authorize(email, password string, db *sql.DB) string {
 	}
 
 	return email
-}
-
-func Update(email, nickname, birthdayDate string, db *sql.DB) {
-	// user := auth.Users[email]
-
-	// if nickname != "" {
-	// 	user.Nickname = nickname
-	// }
-
-	// if birthdayDate != "" {
-	// 	t, err := time.Parse("2006-01-02", birthdayDate)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	user.BirthdayDate = t
-	// }
 }
 
 func isValidEmail(email string) bool {
