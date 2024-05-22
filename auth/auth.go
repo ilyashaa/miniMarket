@@ -3,7 +3,7 @@ package auth
 import (
 	"database/sql"
 	"log"
-	"miniMarket/db/store"
+	store "miniMarket/db/userDB"
 	"regexp"
 	"time"
 

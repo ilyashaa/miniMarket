@@ -1,4 +1,4 @@
-package store
+package userDB
 
 import (
 	"database/sql"
@@ -16,7 +16,7 @@ func RegisterSQL(email string, passwordHash string, db *sql.DB) (string, error) 
 		return "Не получилось передать данные на сервер!", err
 	}
 
-	_, err = result.RowsAffected()
+	_, err = result.RowsAffected() // LastInsertID
 	if err != nil {
 		return "Не получилось передать данные на сервер.", err
 	}

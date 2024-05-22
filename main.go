@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"miniMarket/auth"
-	userDB "miniMarket/db/store"
-	"miniMarket/product"
+	product "miniMarket/db/productDB"
+	userDB "miniMarket/db/userDB"
 	"net/http"
 	"time"
 
@@ -38,6 +38,12 @@ func main() {
 		c.HTML(http.StatusOK, "products.html", gin.H{
 			"products": products,
 		})
+	})
+
+	router.POST("/products", func(c *gin.Context) {
+		// GetProduct(productDB), CostProduct(тут же), CreateSale(saleDB), AddProductsToSale(saleDB)
+		product.CreateOrder(db, c) // пенести в orderDB
+		c.Redirect(http.StatusSeeOther, "http://localhost:8080/product")
 	})
 
 	router.GET("/home", func(c *gin.Context) {
