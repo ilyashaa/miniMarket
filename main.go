@@ -7,6 +7,7 @@ import (
 	"miniMarket/auth"
 	"miniMarket/db/productDB"
 	product "miniMarket/db/productDB"
+	saledb "miniMarket/db/saleDB"
 	userDB "miniMarket/db/userDB"
 	"net/http"
 	"time"
@@ -47,10 +48,22 @@ func main() {
 
 	router.POST("/products", func(c *gin.Context) {
 		// GetProduct(productDB), CostProduct(тут же), CreateSale(saleDB), AddProductsToSale(saleDB)
-		product.CreateOrder(db, c) // пенести в orderDB
+		// product.CreateOrder(db, c) // пенести в orderDB
+		// достать id продуктов из запроса http
+		costProducts := productDB.GetPriceProduct(db, idProducts)
+		var allCostProducts float64 = 0
+		for id, count := range selectedProduct {
+			for ids, cost := range costProducts {
+				if id == ids {
+					allCostProducts = allCostProducts + (float64(count) * cost)
+				}
+			}
+		}
+		saleId := saledb.CreateSale(allCostProducts, selectedProduct, db)
+		saledb.AddProductsToSale
 		c.Redirect(http.StatusSeeOther, "http://localhost:8080/product")
 	})
-
+	
 	router.GET("/home", func(c *gin.Context) {
 
 		c.HTML(http.StatusOK, "home.html", gin.H{

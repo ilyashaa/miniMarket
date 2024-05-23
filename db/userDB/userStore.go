@@ -1,6 +1,7 @@
 package userDB
 
 import (
+	"log"
 	"time"
 
 	"gorm.io/gorm"
@@ -8,11 +9,11 @@ import (
 
 type User struct {
 	gorm.Model
-	ID           uint   `gorm:type:uuid; primaryKey`
+	ID           uint   `gorm:"type:uuid; primaryKey"`
 	Email        string `gorm:"unique"`
 	Password     string
-	Nickname     string    `gorm:"type:varchar(15); default:"Nickname"`
-	BirthdayDate time.Time `gorm:"type:date"; default: "01.01.2000"`
+	Nickname     string    `gorm:"type:varchar(15); default:Nickname"`
+	BirthdayDate time.Time `gorm:"type:date"`
 }
 
 func RegisterSQL(email string, passwordHash string, db *gorm.DB) (string, error) {
@@ -54,11 +55,13 @@ func UpdateInfoSQL(email, nickname, birthdayDate string, db *gorm.DB) {
 
 	birthDate, err := time.Parse(time.DateOnly, birthdayDate)
 	if err != nil {
+		log.Fatal(err)
 	}
 
 	var user User
 	result := db.Where("email = ?", email).First(&user)
 	if result.Error != nil {
+		log.Fatal(err)
 	}
 
 	updates := User{
