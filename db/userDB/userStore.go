@@ -1,88 +1,69 @@
 package userDB
 
 import (
-	"database/sql"
-	"log"
+	"time"
+
+	"gorm.io/gorm"
 )
 
-func RegisterSQL(email string, passwordHash string, db *sql.DB) (string, error) {
+type User struct {
+	gorm.Model
+	ID           uint   `gorm:type:uuid; primaryKey`
+	Email        string `gorm:"unique"`
+	Password     string
+	Nickname     string    `gorm:"type:varchar(15); default:"Nickname"`
+	BirthdayDate time.Time `gorm:"type:date"; default: "01.01.2000"`
+}
 
-	query := `
-    INSERT INTO users (email, password)
-    VALUES ($1, $2);`
+func RegisterSQL(email string, passwordHash string, db *gorm.DB) (string, error) {
 
-	result, err := db.Exec(query, email, passwordHash)
-	if err != nil {
-		return "Не получилось передать данные на сервер!", err
-	}
-
-	_, err = result.RowsAffected() // LastInsertID
-	if err != nil {
-		return "Не получилось передать данные на сервер.", err
+	user := User{Email: email, Password: passwordHash}
+	result := db.Create(&user)
+	if result.Error != nil {
+		return "Не получилось передать данные на сервер.", nil
 	}
 
 	return "Вы прошли регистрацию, " + email, nil
 }
 
-func AuthorizeSQL(email string, password string, db *sql.DB) (string, error) {
+func AuthorizeSQL(email string, password string, db *gorm.DB) (string, error) {
 
-	query := `SELECT Email, Password FROM users WHERE email = $1`
-
-	rows, err := db.Query(query, email)
-	if err != nil {
-		return "Не удалось получить данные", err
+	var user User
+	result := db.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		return "Не удалось получить данные", nil
 	}
 
-	defer rows.Close()
-	var sqlEmail string
-	var sqlPassword string
-
-	for rows.Next() {
-		err = rows.Scan(&sqlEmail, &sqlPassword)
-		if err != nil {
-			return "Не удалось расшифровать данные", err
-		}
-
-	}
-
-	return sqlPassword, nil
+	return user.Password, nil
 
 }
 
-func SelectInfoSQL(emailKey string, db *sql.DB) (string, string, string, error) {
+func SelectInfoSQL(emailKey string, db *gorm.DB) (string, string, time.Time, error) {
 
-	query := `SELECT email, nickname, birthdaydate FROM users WHERE email = $1`
-
-	rows, err := db.Query(query, emailKey)
-	if err != nil {
-		return "", "", "", err
+	var user User
+	result := db.Where("email = ?", emailKey).First(&user)
+	if result.Error != nil {
+		defaultTime := time.Now()
+		return "Не удалось получить данные", "Не удалось получить данные", defaultTime, nil
 	}
 
-	defer rows.Close()
-	var sqlEmail, sqlNickname, sqlBirthdayDate string
-
-	for rows.Next() {
-		err = rows.Scan(&sqlEmail, &sqlNickname, &sqlBirthdayDate)
-		if err != nil {
-			return "", "", "", err
-		}
-	}
-
-	return sqlEmail, sqlNickname, sqlBirthdayDate, nil
+	return user.Email, user.Nickname, user.BirthdayDate, nil
 }
 
-func UpdateInfoSQL(email, nickname, birthdayDate string, db *sql.DB) {
+func UpdateInfoSQL(email, nickname, birthdayDate string, db *gorm.DB) {
 
-	query := `
-    UPDATE users SET nickname = $1, birthdayDate = $2 WHERE email = $3`
-
-	result, err := db.Exec(query, nickname, birthdayDate, email)
+	birthDate, err := time.Parse(time.DateOnly, birthdayDate)
 	if err != nil {
-		log.Fatal(err)
 	}
 
-	_, err = result.RowsAffected()
-	if err != nil {
-		log.Fatal(err)
+	var user User
+	result := db.Where("email = ?", email).First(&user)
+	if result.Error != nil {
 	}
+
+	updates := User{
+		Nickname:     nickname,
+		BirthdayDate: birthDate,
+	}
+	db.Model(&user).Updates(updates)
 }

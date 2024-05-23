@@ -1,46 +1,31 @@
 package productDB
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type Product struct {
-	Id    int
-	Name  string
-	Price float32
-	Image string
+	Id    int     `gorm:"primaryKey"`
+	Name  string  `gorm:"type:varchar(10)"`
+	Price float64 `gorm:"type:decimal"`
+	Image string  `gorm:"type:text"`
 }
 
-func LocalProduct(db *sql.DB) ([]Product, error) {
-	rows, err := db.Query("SELECT id, name, price, image FROM products")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+func LocalProduct(db *gorm.DB) ([]Product, error) {
 	var products []Product
-	for rows.Next() {
-		var p Product
-		if err := rows.Scan(&p.Id, &p.Name, &p.Price, &p.Image); err != nil {
-			return nil, err
-		}
-		products = append(products, p)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
+	db.Find(&products)
 
 	return products, nil
 }
 
-
-func GetProducts(db *sql.DB, ids []int) {
+func GetProducts(db *gorm.DB, ids []int) {
 	// получения списка выбранных товаров, возвращаю id товара и его цену. Работает с массивом id
 }
 
-func CreateOrder(db *sql.DB, c *gin.Context) {
+func CreateOrder(db *gorm.DB, c *gin.Context) {
 	var selectedItems map[int]int
 
 	if err := c.BindJSON(&selectedItems); err != nil {

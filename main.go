@@ -1,10 +1,11 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
+
 	"miniMarket/auth"
+	"miniMarket/db/productDB"
 	product "miniMarket/db/productDB"
 	userDB "miniMarket/db/userDB"
 	"net/http"
@@ -12,13 +13,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
 
 	db := StartDB()
 
-	defer db.Close()
+	defer CloseDB(db)
+
+	db.AutoMigrate(&userDB.User{}, &productDB.Product{})
 
 	router := gin.Default()
 
@@ -90,16 +95,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		birthdayDate, err := time.Parse(time.RFC3339, sqlBirthdayDate)
-		if err != nil {
-			fmt.Println("Ошибка при парсинге даты:", err)
-			return
-		}
 
 		c.HTML(http.StatusOK, "user.html", gin.H{
 			"Email":        sqlEmail,
 			"Nickname":     sqlNickname,
-			"BirthdayDate": birthdayDate,
+			"BirthdayDate": sqlBirthdayDate,
 		})
 	})
 
@@ -122,7 +122,7 @@ func main() {
 	router.Run(":8080")
 }
 
-func StartDB() *sql.DB {
+func StartDB() *gorm.DB {
 	const (
 		host     = "localhost"
 		port     = 5432
@@ -135,15 +135,18 @@ func StartDB() *sql.DB {
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = db.Ping()
+	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return db
+}
+
+func CloseDB(db *gorm.DB) {
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	sqlDB.Close()
 }

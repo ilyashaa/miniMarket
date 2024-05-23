@@ -1,13 +1,13 @@
 package auth
 
 import (
-	"database/sql"
 	"log"
 	store "miniMarket/db/userDB"
 	"regexp"
 	"time"
 
 	"github.com/alexedwards/argon2id"
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -22,7 +22,7 @@ type Response struct {
 	Text         string
 }
 
-func Register(email string, password string, db *sql.DB) string {
+func Register(email string, password string, db *gorm.DB) string {
 
 	validMail := isValidEmail(email)
 
@@ -44,7 +44,7 @@ func Register(email string, password string, db *sql.DB) string {
 	return result
 }
 
-func Authorize(email, password string, db *sql.DB) string {
+func Authorize(email, password string, db *gorm.DB) string {
 
 	sqlPassword, err := store.AuthorizeSQL(email, password, db)
 	if err != nil {
