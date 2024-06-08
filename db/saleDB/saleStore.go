@@ -16,21 +16,22 @@ type Sale struct {
 }
 
 type ProductsInSale struct {
-	IdSale       string // ЗАМЕНИТЬ ВЕЗДЕ UINT НА INT
-	IdProduct    string // gorm записи
-	CostProduct  decimal.Decimal
-	CountProduct int
+	IdSale       string          `gorm:"type:text"`
+	IdProduct    int             `gorm:"type:integer"`
+	CostProduct  decimal.Decimal `gorm:"type:decimal"`
+	CountProduct int             `gorm:"type:integer"`
 }
 
-func CreateSale(cost decimal.Decimal, selectedProducts map[int]int, db *gorm.DB) (string, error) { // + возвращать id, error
+func CreateSale(cost float64, selectedProducts map[int]int, db *gorm.DB) (string, error) { // + возвращать id, error
 	saleTime := time.Now().UTC()
 	saleId, err := gonanoid.New()
 	if err != nil {
 		return "0", err // доработать
 	}
+	allCost := decimal.NewFromFloat(cost)
 	sale := Sale{
 		Id:       saleId,
-		AllCost:  cost,
+		AllCost:  allCost,
 		SaleTime: saleTime,
 	}
 	result := db.Create(&sale)
@@ -38,13 +39,19 @@ func CreateSale(cost decimal.Decimal, selectedProducts map[int]int, db *gorm.DB)
 		fmt.Printf("error: %v\n", result.Error)
 	}
 	return sale.Id, nil
-	// var saleID Sale
-	// resultSaleID := db.Where("SaleTime = ?", sale.SaleTime).First(&saleID)
-	// if resultSaleID.Error != nil {
-	// 	fmt.Printf("error: %v\n", resultSaleID.Error)
-	// }
 }
 
-// func AddProductsToSale(saleID string, selectedProducts map[int]int, db *gorm.DB) {
-// 	priceProduct := productDB.GetPriceProduct(db)
-// }
+func AddProductsToSale(saleID string, selectedProducts map[int]int, costProducts []float64, db *gorm.DB) {
+	for idProduct, countProduct := range selectedProducts {
+		productInSale := ProductsInSale{
+			IdSale:       saleID,
+			IdProduct:    selectedProducts[idProduct],
+			CostProduct:  decimal.NewFromFloat(costProducts[idProduct-1]),
+			CountProduct: countProduct,
+		}
+		result := db.Create(&productInSale)
+		if result.Error != nil {
+			fmt.Printf("error: %v\n", result.Error)
+		}
+	}
+}

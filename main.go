@@ -7,7 +7,8 @@ import (
 	"miniMarket/auth"
 	"miniMarket/db/productDB"
 	product "miniMarket/db/productDB"
-	saledb "miniMarket/db/saleDB"
+
+	saleDB "miniMarket/db/saleDB"
 	userDB "miniMarket/db/userDB"
 	"net/http"
 	"time"
@@ -24,7 +25,7 @@ func main() {
 
 	defer CloseDB(db)
 
-	db.AutoMigrate(&userDB.User{}, &productDB.Product{})
+	db.AutoMigrate(&userDB.User{}, &productDB.Product{}, &saleDB.Sale{}, &saleDB.ProductsInSale{})
 
 	router := gin.Default()
 
@@ -41,8 +42,17 @@ func main() {
 		if err != nil {
 			return
 		}
+		formattedProducts := make([]gin.H, len(products))
+		for i, product := range products {
+			formattedProducts[i] = gin.H{
+				"Id":    product.Id,
+				"Name":  product.Name,
+				"Price": product.Price.StringFixed(2),
+				"Image": product.Image,
+			}
+		}
 		c.HTML(http.StatusOK, "products.html", gin.H{
-			"products": products,
+			"products": formattedProducts,
 		})
 	})
 
@@ -50,20 +60,24 @@ func main() {
 		// GetProduct(productDB), CostProduct(тут же), CreateSale(saleDB), AddProductsToSale(saleDB)
 		// product.CreateOrder(db, c) // пенести в orderDB
 		// достать id продуктов из запроса http
-		costProducts := productDB.GetPriceProduct(db, idProducts)
-		var allCostProducts float64 = 0
-		for id, count := range selectedProduct {
-			for ids, cost := range costProducts {
-				if id == ids {
-					allCostProducts = allCostProducts + (float64(count) * cost)
-				}
-			}
+		selectedProduct, idProducts := productDB.GetProduct(db, c)
+		costProducts, err := productDB.GetPriceProduct(db, idProducts)
+		if err != nil {
+			log.Fatal(err)
 		}
-		saleId := saledb.CreateSale(allCostProducts, selectedProduct, db)
-		saledb.AddProductsToSale
+		var allCostProducts float64
+		for id, count := range selectedProduct {
+			allCostProducts = allCostProducts + (float64(count) * costProducts[id-1])
+		}
+		saleID, err := saleDB.CreateSale(allCostProducts, selectedProduct, db)
+		if err != nil {
+			log.Fatal(err)
+		}
+		saleDB.AddProductsToSale(saleID, selectedProduct, costProducts, db)
+
 		c.Redirect(http.StatusSeeOther, "http://localhost:8080/product")
 	})
-	
+
 	router.GET("/home", func(c *gin.Context) {
 
 		c.HTML(http.StatusOK, "home.html", gin.H{
