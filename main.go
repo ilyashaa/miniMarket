@@ -46,7 +46,7 @@ func main() {
 		for i, product := range products {
 			formattedProducts[i] = gin.H{
 				"Id":    product.Id,
-				"Name":  product.Name,
+				"Name":  product.NameProduct,
 				"Price": product.Price.StringFixed(2),
 				"Image": product.Image,
 			}

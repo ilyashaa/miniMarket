@@ -1,59 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Details</title>
     <style>
-        .order-details {
-            width: 50%;
-            margin: 20px auto;
-            border: 1px solid #ddd;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
             padding: 20px;
-            border-radius: 5px;
+            background-color: #f4f4f4;
         }
-
-        .order-item {
-            margin-bottom: 15px;
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
         }
-
-        .label {
-            font-weight: bold;
-            margin-right: 10px;
+        .header {
+            background: #333;
+            color: #fff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #0779e4 3px solid;
+        }
+        .header h1 {
+            text-align: center;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .order-info {
+            background: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .order-info h2 {
+            margin-top: 0;
+        }
+        .order-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .order-info table, th, td {
+            border: 1px solid #ddd;
+        }
+        .order-info th, .order-info td {
+            padding: 8px;
+            text-align: left;
+        }
+        .order-info tr:nth-child(even) {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
-
 <body>
-    <h1>Order Details</h1>
-    <div id="order">
-        {{- if .order }}
-        <div class="order-details">
-            <div class="order-item">
-                <span class="label">Order ID:</span>
-                <span class="product-name">{{ .order.IdOrder }}</span>
-            </div>
-            <div class="order-item">
-                <span class="label">Sale ID:</span>
-                <span class="product-name">{{ .order.IdSale }}</span>
-            </div>
-            <div class="order-item">
-                <span class="label">User Email:</span>
-                <span class="product-name">{{ .order.EmailUser }}</span>
-            </div>
-            <div class="order-item">
-                <span class="label">Time of Order:</span>
-                <span class="product-name">{{ .order.TimeOrder.Format "2006-01-02" }}</span>
-            </div>
-            <div class="order-item">
-                <span class="label">Status:</span>
-                <span class="product-name">{{ .order.Status }}</span>
-            </div>
+    <div class="container">
+        <div class="header">
+            <h1>Информация о заказе</h1>
         </div>
-        {{- else }}
-        <p>No order found.</p>
-        {{- end }}
+        <div class="order-info">
+            <h2>Заказ</h2>
+            <p><strong>Заказ ID:</strong> {{.order.IdOrder}}</p>
+            <p><strong>Покупка ID:</strong> {{.order.IdSale}}</p>
+            <p><strong>Email User:</strong> {{.order.EmailUser}}</p>
+            <p><strong>Время заказа:</strong> {{.order.TimeOrder.Format "2006-01-02"}}</p>
+            <p><strong>Статус:</strong> {{.order.Status}}</p>
+            <p><strong>Общая стоимость:</strong> {{.order.AllCost}} руб.</p>
+            
+            <h2>Выбранные товары</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Название товара</th>
+                        <th>Стоимость</th>
+                        <th>Количество</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range $index, $name := .order.NameProduct}}
+                    <tr>
+                        <td>{{$name}}</td>
+                        <td>{{index $.order.CostProduct $index}} руб.</td>
+                        <td>{{index $.order.CountProduct $index}} шт.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
-
 </html>

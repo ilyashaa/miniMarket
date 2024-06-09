@@ -11,10 +11,10 @@ import (
 
 type Product struct {
 	gorm.Model
-	Id    int             `gorm:"primary_key"`
-	Name  string          `gorm:"type:varchar(10)"`
-	Price decimal.Decimal `gorm:"type:decimal"`
-	Image string          `gorm:"type:text"`
+	Id          int             `gorm:"primary_key"`
+	NameProduct string          `gorm:"type:varchar(10)"`
+	Price       decimal.Decimal `gorm:"type:decimal"`
+	Image       string          `gorm:"type:text"`
 }
 
 func LocalProduct(db *gorm.DB) ([]Product, error) {
