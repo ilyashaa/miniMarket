@@ -10,6 +10,7 @@ import (
 )
 
 type Product struct {
+	gorm.Model
 	Id    int             `gorm:"primary_key"`
 	Name  string          `gorm:"type:varchar(10)"`
 	Price decimal.Decimal `gorm:"type:decimal"`
@@ -23,8 +24,8 @@ func LocalProduct(db *gorm.DB) ([]Product, error) {
 	return products, nil
 }
 
-func GetPriceProduct(db *gorm.DB, idsProducts []int) ([]float64, error) {
-	var priceProduct []float64
+func GetPriceProduct(db *gorm.DB, idsProducts []int) (map[int]float64, error) {
+	priceProduct := make(map[int]float64)
 	var products []Product
 	// SQL: "Select * FROM products WHERE id in(id1,id2...)" - перевести в Go
 	result := db.Select("id", "price").Where("id IN ?", idsProducts).Find(&products)
@@ -34,7 +35,7 @@ func GetPriceProduct(db *gorm.DB, idsProducts []int) ([]float64, error) {
 
 	for _, product := range products {
 		price, _ := product.Price.Float64()
-		priceProduct = append(priceProduct, price)
+		priceProduct[product.Id] = price
 	}
 
 	return priceProduct, nil

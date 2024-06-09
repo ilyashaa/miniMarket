@@ -9,12 +9,14 @@
             padding: 20px;
             background: #f5f5f5;
         }
+
         .products {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             justify-content: center;
         }
+
         .product {
             background: white;
             border-radius: 10px;
@@ -23,23 +25,28 @@
             text-align: center;
             width: 180px;
         }
+
         .product img {
             width: 100px;
             height: 100px;
             border-radius: 10px;
             object-fit: cover;
         }
+
         .product-name {
             font-size: 18px;
             margin-top: 10px;
             color: #333;
         }
+
         .product-price {
             font-size: 16px;
             margin-top: 5px;
             color: #007bff;
         }
-        .add-button, .remove-button {
+
+        .add-button,
+        .remove-button {
             background: #007bff;
             color: white;
             border: none;
@@ -47,6 +54,7 @@
             padding: 5px 10px;
             cursor: pointer;
         }
+
         .buy-button {
             background: #007bff;
             padding: 10px 20px;
@@ -56,8 +64,49 @@
             cursor: pointer;
             margin-top: 20px;
         }
+
         .selected-products {
             margin-top: 20px;
+        }
+
+        .orders {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .order {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+            padding: 20px;
+            text-align: center;
+            width: 200px;
+            margin-bottom: 20px;
+        }
+
+        .order-id {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .order-status {
+            margin-bottom: 10px;
+            color: #007bff;
+        }
+
+        .view-order-button {
+            padding: 5px 10px;
+            background-color: green;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .view-order-button:hover {
+            background-color: darkgreen;
         }
     </style>
 </head>
@@ -85,17 +134,17 @@
 
     <h4>История заказов:</h4>
     <div class="orders">
-        {{range .Orders}}
+        {{range .orders}}
         <div class="order">
-            <div class="order-id">{{.Id}}</div>
-            <div class="order-status">{{.Status}}
-            <button type="submit">Посмотреть заказ</button>   
+            <div class="order-id">Заказ: {{.IdOrder}}</div>
+            <div class="order-status">Статус: {{.Status}}</div>
+            <button class="view-order-button" onclick="location.href='/order/{{.IdOrder}}'">Посмотреть заказ</button>
         </div>
         {{ else }}
-        <p>Нет доступных продуктов.</p>
+        <p>Нет заказов.</p>
         {{ end }}
     </div>
-    
+
     <script>
         const selectedItems = {};
 
@@ -151,9 +200,7 @@ fetch("/products", {
     })
     .then(response => {
         if(response.ok) {
-            alert("Заказ оформлен!");
-            selectedItems = {}; 
-            updateSelectedItemsList();
+            window.location.href = "/products"; 
         } else {
             alert("Произошла ошибка при оформлении заказа");
         }

@@ -5,9 +5,8 @@ import (
 	"log"
 
 	"miniMarket/auth"
-	"miniMarket/db/productDB"
-	product "miniMarket/db/productDB"
-
+	orderDB "miniMarket/db/orderDB"
+	productDB "miniMarket/db/productDB"
 	saleDB "miniMarket/db/saleDB"
 	userDB "miniMarket/db/userDB"
 	"net/http"
@@ -25,7 +24,7 @@ func main() {
 
 	defer CloseDB(db)
 
-	db.AutoMigrate(&userDB.User{}, &productDB.Product{}, &saleDB.Sale{}, &saleDB.ProductsInSale{})
+	db.AutoMigrate(&userDB.User{}, &productDB.Product{}, &saleDB.Sale{}, &saleDB.ProductsInSale{}, &orderDB.Order{})
 
 	router := gin.Default()
 
@@ -38,7 +37,8 @@ func main() {
 	})
 
 	router.GET("/products", func(c *gin.Context) {
-		products, err := product.LocalProduct(db)
+		orders := orderDB.GetOrders(db)
+		products, err := productDB.LocalProduct(db)
 		if err != nil {
 			return
 		}
@@ -53,29 +53,46 @@ func main() {
 		}
 		c.HTML(http.StatusOK, "products.html", gin.H{
 			"products": formattedProducts,
+			"orders":   orders,
 		})
 	})
 
 	router.POST("/products", func(c *gin.Context) {
-		// GetProduct(productDB), CostProduct(тут же), CreateSale(saleDB), AddProductsToSale(saleDB)
-		// product.CreateOrder(db, c) // пенести в orderDB
-		// достать id продуктов из запроса http
 		selectedProduct, idProducts := productDB.GetProduct(db, c)
 		costProducts, err := productDB.GetPriceProduct(db, idProducts)
 		if err != nil {
 			log.Fatal(err)
 		}
+		idAndPrice := make(map[int]float64)
 		var allCostProducts float64
-		for id, count := range selectedProduct {
-			allCostProducts = allCostProducts + (float64(count) * costProducts[id-1])
+		for idCost, price := range costProducts {
+			for idProduct, count := range selectedProduct {
+				if idCost == idProduct {
+					allCostProducts += (float64(count) * price)
+					idAndPrice[idProduct] = price
+				}
+			}
 		}
 		saleID, err := saleDB.CreateSale(allCostProducts, selectedProduct, db)
 		if err != nil {
 			log.Fatal(err)
 		}
-		saleDB.AddProductsToSale(saleID, selectedProduct, costProducts, db)
-
+		saleDB.AddProductsToSale(saleID, selectedProduct, idAndPrice, db)
+		emailKey, err := c.Cookie("email")
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		orderDB.CreateOrder(saleID, emailKey, db)
 		c.Redirect(http.StatusSeeOther, "http://localhost:8080/product")
+	})
+
+	router.GET("/order/:id", func(c *gin.Context) {
+		orderID := c.Param("id")
+		order := orderDB.GetInfoOrder(orderID, db)
+		c.HTML(http.StatusOK, "order.html", gin.H{
+			"order": order,
+		})
 	})
 
 	router.GET("/home", func(c *gin.Context) {

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Order Details</title>
+    <style>
+        .order-details {
+            width: 50%;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .order-item {
+            margin-bottom: 15px;
+        }
+
+        .label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Order Details</h1>
+    <div id="order">
+        {{- if .order }}
+        <div class="order-details">
+            <div class="order-item">
+                <span class="label">Order ID:</span>
+                <span class="product-name">{{ .order.IdOrder }}</span>
+            </div>
+            <div class="order-item">
+                <span class="label">Sale ID:</span>
+                <span class="product-name">{{ .order.IdSale }}</span>
+            </div>
+            <div class="order-item">
+                <span class="label">User Email:</span>
+                <span class="product-name">{{ .order.EmailUser }}</span>
+            </div>
+            <div class="order-item">
+                <span class="label">Time of Order:</span>
+                <span class="product-name">{{ .order.TimeOrder.Format "2006-01-02" }}</span>
+            </div>
+            <div class="order-item">
+                <span class="label">Status:</span>
+                <span class="product-name">{{ .order.Status }}</span>
+            </div>
+        </div>
+        {{- else }}
+        <p>No order found.</p>
+        {{- end }}
+    </div>
+</body>
+
+</html>

@@ -10,12 +10,14 @@ import (
 )
 
 type Sale struct {
+	gorm.Model
 	Id       string          `gorm:"primaryKey"`
 	AllCost  decimal.Decimal `gorm:"type:decimal"`
 	SaleTime time.Time       `gorm:"type:date"`
 }
 
 type ProductsInSale struct {
+	gorm.Model
 	IdSale       string          `gorm:"type:text"`
 	IdProduct    int             `gorm:"type:integer"`
 	CostProduct  decimal.Decimal `gorm:"type:decimal"`
@@ -41,12 +43,12 @@ func CreateSale(cost float64, selectedProducts map[int]int, db *gorm.DB) (string
 	return sale.Id, nil
 }
 
-func AddProductsToSale(saleID string, selectedProducts map[int]int, costProducts []float64, db *gorm.DB) {
+func AddProductsToSale(saleID string, selectedProducts map[int]int, idAndPrice map[int]float64, db *gorm.DB) {
 	for idProduct, countProduct := range selectedProducts {
 		productInSale := ProductsInSale{
 			IdSale:       saleID,
 			IdProduct:    selectedProducts[idProduct],
-			CostProduct:  decimal.NewFromFloat(costProducts[idProduct-1]),
+			CostProduct:  decimal.NewFromFloat(idAndPrice[idProduct]),
 			CountProduct: countProduct,
 		}
 		result := db.Create(&productInSale)
