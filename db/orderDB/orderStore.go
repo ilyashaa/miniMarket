@@ -52,6 +52,7 @@ func CreateOrder(saleID string, emailKey string, db *gorm.DB) {
 	orderID, err := gonanoid.New()
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 	var user userDB.User
 	db.Where("email = ?", emailKey).First(&user)

@@ -68,7 +68,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot unmarshal JSON"})
 			log.Fatal(err)
 		}
-		selectedProduct, idProducts := productDB.GetProduct(db, selectedItems)
+		 selectedProduct, idProducts := productDB.GetProduct(db, selectedItems)
 		costProducts, err := productDB.GetPriceProduct(db, idProducts)
 		if err != nil {
 			log.Fatal(err)
