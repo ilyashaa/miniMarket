@@ -14,7 +14,7 @@ type Order struct {
 	gorm.Model
 	IdOrder   string    `gorm:"primaryKey"`
 	IdSale    string    `gorm:"type:text"`
-	EmailUser string    `gorm:"type:text"`
+	IdUser    uint      `gorm:"type:int"`
 	TimeOrder time.Time `gorm:"type:date"`
 	Status    string    `gorm:"type:text"`
 }
@@ -22,7 +22,7 @@ type Order struct {
 type OrderSaleInfoSQL struct {
 	IdOrder      string
 	IdSale       string
-	EmailUser    string
+	IdUser       uint
 	TimeOrder    time.Time
 	Status       string
 	AllCost      decimal.Decimal
@@ -32,12 +32,16 @@ type OrderSaleInfoSQL struct {
 }
 
 type OrderSaleInfo struct {
-	IdOrder      string
-	IdSale       string
-	EmailUser    string
-	TimeOrder    time.Time
-	Status       string
-	AllCost      decimal.Decimal
+	IdOrder     string
+	IdSale      string
+	IdUser      uint
+	TimeOrder   time.Time
+	Status      string
+	AllCost     decimal.Decimal
+	ProductList ProductList
+}
+
+type ProductList struct {
 	NameProduct  []string
 	CostProduct  []decimal.Decimal
 	CountProduct []int
@@ -50,30 +54,29 @@ func CreateOrder(saleID string, emailKey string, db *gorm.DB) {
 		log.Fatal(err)
 	}
 	var user userDB.User
-	result := db.Where("email = ?", emailKey).First(&user)
-	if result.Error != nil {
-		log.Fatal(err)
-	}
+	db.Where("email = ?", emailKey).First(&user)
 	order := Order{
 		IdOrder:   orderID,
 		IdSale:    saleID,
-		EmailUser: user.Email,
+		IdUser:    user.ID,
 		TimeOrder: orderTime,
 		Status:    "Pending",
 	}
 	db.Create(&order)
 }
 
-func GetOrders(db *gorm.DB) []Order {
+func GetOrders(db *gorm.DB, email string) []Order {
+	var user userDB.User
+	db.Where("email = ?", email).Find(&user)
 	var orders []Order
-	db.Find(&orders)
+	db.Where("id_user = ?", user.ID).Find(&orders)
 	return orders
 }
 
 func GetInfoOrder(idOrder string, db *gorm.DB) OrderSaleInfo {
 	var orders []OrderSaleInfoSQL
 
-	db.Table("orders").Select("orders.id_order", "orders.id_sale", "orders.email_user", "orders.time_order", "orders.status",
+	db.Table("orders").Select("orders.id_order", "orders.id_sale", "orders.id_user", "orders.time_order", "orders.status",
 		"sales.all_cost",
 		"products_in_sales.cost_product", "products_in_sales.count_product",
 		"products.name_product").
@@ -82,21 +85,20 @@ func GetInfoOrder(idOrder string, db *gorm.DB) OrderSaleInfo {
 		Joins("JOIN products ON products.id = products_in_sales.id_product").
 		Where("orders.id_order = ?", idOrder).
 		Find(&orders)
-		// db.Where("id_order = ?", idOrder).First(&order)
 
 	order := OrderSaleInfo{
 		IdOrder:   orders[0].IdOrder,
 		IdSale:    orders[0].IdSale,
-		EmailUser: orders[0].EmailUser,
+		IdUser:    orders[0].IdUser,
 		TimeOrder: orders[0].TimeOrder,
 		Status:    orders[0].Status,
 		AllCost:   orders[0].AllCost,
 	}
 
 	for i := range orders {
-		order.NameProduct = append(order.NameProduct, orders[i].NameProduct)
-		order.CostProduct = append(order.CostProduct, orders[i].CostProduct)
-		order.CountProduct = append(order.CountProduct, orders[i].CountProduct)
+		order.ProductList.NameProduct = append(order.ProductList.NameProduct, orders[i].NameProduct)
+		order.ProductList.CostProduct = append(order.ProductList.CostProduct, orders[i].CostProduct)
+		order.ProductList.CountProduct = append(order.ProductList.CountProduct, orders[i].CountProduct)
 	}
 	return order
 }

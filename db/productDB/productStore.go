@@ -1,10 +1,6 @@
 package productDB
 
 import (
-	"log"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
@@ -41,13 +37,7 @@ func GetPriceProduct(db *gorm.DB, idsProducts []int) (map[int]float64, error) {
 	return priceProduct, nil
 }
 
-func GetProduct(db *gorm.DB, c *gin.Context) (map[int]int, []int) {
-	var selectedItems map[int]int
-
-	if err := c.BindJSON(&selectedItems); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot unmarshal JSON"})
-		log.Fatal(err)
-	}
+func GetProduct(db *gorm.DB, selectedItems map[int]int) (map[int]int, []int) {
 	var idsProducts []int
 	for idProducts := range selectedItems {
 		idsProducts = append(idsProducts, idProducts)

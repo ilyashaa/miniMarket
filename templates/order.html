@@ -62,7 +62,7 @@
             <h2>Заказ</h2>
             <p><strong>Заказ ID:</strong> {{.order.IdOrder}}</p>
             <p><strong>Покупка ID:</strong> {{.order.IdSale}}</p>
-            <p><strong>Email User:</strong> {{.order.EmailUser}}</p>
+            <p><strong>ID покупателя:</strong> {{.order.IdUser}}</p>
             <p><strong>Время заказа:</strong> {{.order.TimeOrder.Format "2006-01-02"}}</p>
             <p><strong>Статус:</strong> {{.order.Status}}</p>
             <p><strong>Общая стоимость:</strong> {{.order.AllCost}} руб.</p>
@@ -77,11 +77,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{range $index, $name := .order.NameProduct}}
+                    {{range $index, $name := .order.ProductList.NameProduct}}
                     <tr>
                         <td>{{$name}}</td>
-                        <td>{{index $.order.CostProduct $index}} руб.</td>
-                        <td>{{index $.order.CountProduct $index}} шт.</td>
+                        <td>{{index $.order.ProductList.CostProduct $index}} руб.</td>
+                        <td>{{index $.order.ProductList.CountProduct $index}} шт.</td>
                     </tr>
                     {{end}}
                 </tbody>

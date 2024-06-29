@@ -37,7 +37,11 @@ func main() {
 	})
 
 	router.GET("/products", func(c *gin.Context) {
-		orders := orderDB.GetOrders(db)
+		email, err := c.Cookie("email")
+		if err != nil {
+			email = ""
+		}
+		orders := orderDB.GetOrders(db, email)
 		products, err := productDB.LocalProduct(db)
 		if err != nil {
 			return
@@ -58,7 +62,13 @@ func main() {
 	})
 
 	router.POST("/products", func(c *gin.Context) {
-		selectedProduct, idProducts := productDB.GetProduct(db, c)
+		var selectedItems map[int]int
+
+		if err := c.BindJSON(&selectedItems); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot unmarshal JSON"})
+			log.Fatal(err)
+		}
+		selectedProduct, idProducts := productDB.GetProduct(db, selectedItems)
 		costProducts, err := productDB.GetPriceProduct(db, idProducts)
 		if err != nil {
 			log.Fatal(err)
@@ -96,9 +106,12 @@ func main() {
 	})
 
 	router.GET("/home", func(c *gin.Context) {
-
+		email, err := c.Cookie("email")
+		if err != nil {
+			email = "пользователь"
+		}
 		c.HTML(http.StatusOK, "home.html", gin.H{
-			"Email": "пользователь",
+			"Email": email,
 		})
 	})
 
