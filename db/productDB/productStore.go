@@ -7,7 +7,6 @@ import (
 
 type Product struct {
 	gorm.Model
-	Id          int             `gorm:"primary_key"`
 	NameProduct string          `gorm:"type:varchar(10)"`
 	Price       decimal.Decimal `gorm:"type:decimal"`
 	Image       string          `gorm:"type:text"`
@@ -31,16 +30,8 @@ func GetPriceProduct(db *gorm.DB, idsProducts []int) (map[int]float64, error) {
 
 	for _, product := range products {
 		price, _ := product.Price.Float64()
-		priceProduct[product.Id] = price
+		priceProduct[int(product.ID)] = price
 	}
 
 	return priceProduct, nil
-}
-
-func GetProduct(db *gorm.DB, selectedItems map[int]int) (map[int]int, []int) {
-	var idsProducts []int
-	for idProducts := range selectedItems {
-		idsProducts = append(idsProducts, idProducts)
-	}
-	return selectedItems, idsProducts
 }

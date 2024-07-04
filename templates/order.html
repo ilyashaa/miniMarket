@@ -77,11 +77,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{range $index, $name := .order.ProductList.NameProduct}}
+                    {{range .order.ProductList}}
                     <tr>
-                        <td>{{$name}}</td>
-                        <td>{{index $.order.ProductList.CostProduct $index}} руб.</td>
-                        <td>{{index $.order.ProductList.CountProduct $index}} шт.</td>
+                        <td>{{.NameProduct}}</td>
+                        <td>{{.CostProduct}} руб.</td>
+                        <td>{{.CountProduct}} шт.</td>
                     </tr>
                     {{end}}
                 </tbody>

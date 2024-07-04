@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"miniMarket/auth"
 	orderDB "miniMarket/db/orderDB"
@@ -37,11 +38,12 @@ func main() {
 	})
 
 	router.GET("/products", func(c *gin.Context) {
-		email, err := c.Cookie("email")
+		IdUser, err := c.Cookie("IdUser")
 		if err != nil {
-			email = ""
+			IdUser = ""
+			return
 		}
-		orders := orderDB.GetOrders(db, email)
+		orders := orderDB.GetOrders(db, IdUser)
 		products, err := productDB.LocalProduct(db)
 		if err != nil {
 			return
@@ -49,7 +51,7 @@ func main() {
 		formattedProducts := make([]gin.H, len(products))
 		for i, product := range products {
 			formattedProducts[i] = gin.H{
-				"Id":    product.Id,
+				"Id":    product.ID,
 				"Name":  product.NameProduct,
 				"Price": product.Price.StringFixed(2),
 				"Image": product.Image,
@@ -68,7 +70,12 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot unmarshal JSON"})
 			log.Fatal(err)
 		}
-		 selectedProduct, idProducts := productDB.GetProduct(db, selectedItems)
+
+		var idProducts []int
+		for id := range selectedItems {
+			idProducts = append(idProducts, id)
+		}
+
 		costProducts, err := productDB.GetPriceProduct(db, idProducts)
 		if err != nil {
 			log.Fatal(err)
@@ -76,24 +83,24 @@ func main() {
 		idAndPrice := make(map[int]float64)
 		var allCostProducts float64
 		for idCost, price := range costProducts {
-			for idProduct, count := range selectedProduct {
+			for idProduct, count := range selectedItems {
 				if idCost == idProduct {
 					allCostProducts += (float64(count) * price)
 					idAndPrice[idProduct] = price
 				}
 			}
 		}
-		saleID, err := saleDB.CreateSale(allCostProducts, selectedProduct, db)
+		saleID, err := saleDB.CreateSale(allCostProducts, selectedItems, db)
 		if err != nil {
 			log.Fatal(err)
 		}
-		saleDB.AddProductsToSale(saleID, selectedProduct, idAndPrice, db)
-		emailKey, err := c.Cookie("email")
+		saleDB.AddProductsToSale(saleID, selectedItems, idAndPrice, db)
+		IdUser, err := c.Cookie("IdUser")
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		orderDB.CreateOrder(saleID, emailKey, db)
+		orderDB.CreateOrder(saleID, IdUser, db)
 		c.Redirect(http.StatusSeeOther, "http://localhost:8080/product")
 	})
 
@@ -128,35 +135,33 @@ func main() {
 		email := c.PostForm("email")
 		password := c.PostForm("password")
 		expiration := time.Now().Add(24 * time.Hour)
-		cookie := http.Cookie{
-			Name:    "email",
-			Value:   email,
+		result := auth.Authorize(email, password, db)
+		cookieEmail := http.Cookie{
+			Name:    "IdUser",
+			Value:   strconv.FormatUint(uint64(result.ID), 10),
 			Expires: expiration,
 		}
-		http.SetCookie(c.Writer, &cookie)
-		result := auth.Authorize(email, password, db)
+		http.SetCookie(c.Writer, &cookieEmail)
 		c.HTML(http.StatusOK, "home.html", gin.H{
-			"Email": result,
+			"Email": result.Email,
 		})
 
 	})
 
 	router.GET("/user", func(c *gin.Context) {
-		emailKey, err := c.Cookie("email")
+		IdUser, err := c.Cookie("IdUser")
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 
-		sqlEmail, sqlNickname, sqlBirthdayDate, err := userDB.SelectInfoSQL(emailKey, db)
+		user, err := userDB.SelectInfoSQL(IdUser, db)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		c.HTML(http.StatusOK, "user.html", gin.H{
-			"Email":        sqlEmail,
-			"Nickname":     sqlNickname,
-			"BirthdayDate": sqlBirthdayDate,
+			"user": user,
 		})
 	})
 

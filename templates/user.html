@@ -48,15 +48,15 @@
         <form action="/user" method="post">
             <div class="form-group">
                 <label for="email">Email:</label><br>
-                <input type="email" id="email" name="email" value="{{.Email}}">
+                <input type="email" id="email" name="email" value="{{.user.Email}}">
             </div>
             <div class="form-group">
                 <label for="nickname">Nickname:</label><br>
-                <input type="text" id="nickname" name="nickname" value="{{.Nickname}}">
+                <input type="text" id="nickname" name="nickname" value="{{.user.Nickname}}">
             </div>
             <div class="form-group">
                 <label for="birthDate">Дата рождения:</label><br>
-                <input type="date" id="birthdayDate" name="birthdayDate" value='{{.BirthdayDate.Format "2006-01-02"}}'>
+                <input type="date" id="birthdayDate" name="birthdayDate" value='{{.user.BirthdayDate.Format "2006-01-02"}}'>
             </div>
             <button type="submit" class="button">Сохранить изменения</button>
         </form>

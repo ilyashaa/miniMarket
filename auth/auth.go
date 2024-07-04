@@ -44,23 +44,23 @@ func Register(email string, password string, db *gorm.DB) string {
 	return result
 }
 
-func Authorize(email, password string, db *gorm.DB) string {
+func Authorize(email, password string, db *gorm.DB) store.User {
 
-	sqlPassword, err := store.AuthorizeSQL(email, password, db)
+	user, err := store.AuthorizeSQL(email, password, db)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	match, err := argon2id.ComparePasswordAndHash(password, sqlPassword)
+	match, err := argon2id.ComparePasswordAndHash(password, user.Password)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if !match {
-		return "Неверный логин или пароль"
+		return store.User{}
 	}
 
-	return email
+	return user
 }
 
 func isValidEmail(email string) bool {

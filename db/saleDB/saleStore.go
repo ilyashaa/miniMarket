@@ -47,7 +47,7 @@ func AddProductsToSale(saleID string, selectedProducts map[int]int, idAndPrice m
 	for idProduct, countProduct := range selectedProducts {
 		productInSale := ProductsInSale{
 			IdSale:       saleID,
-			IdProduct:    selectedProducts[idProduct],
+			IdProduct:    idProduct,
 			CostProduct:  decimal.NewFromFloat(idAndPrice[idProduct]),
 			CountProduct: countProduct,
 		}

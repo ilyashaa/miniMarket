@@ -38,16 +38,16 @@ type OrderSaleInfo struct {
 	TimeOrder   time.Time
 	Status      string
 	AllCost     decimal.Decimal
-	ProductList ProductList
+	ProductList []ProductList
 }
 
 type ProductList struct {
-	NameProduct  []string
-	CostProduct  []decimal.Decimal
-	CountProduct []int
+	NameProduct  string
+	CostProduct  decimal.Decimal
+	CountProduct int
 }
 
-func CreateOrder(saleID string, emailKey string, db *gorm.DB) {
+func CreateOrder(saleID string, IdUser string, db *gorm.DB) {
 	orderTime := time.Now().UTC()
 	orderID, err := gonanoid.New()
 	if err != nil {
@@ -55,7 +55,7 @@ func CreateOrder(saleID string, emailKey string, db *gorm.DB) {
 		return
 	}
 	var user userDB.User
-	db.Where("email = ?", emailKey).First(&user)
+	db.Where("id = ?", IdUser).First(&user)
 	order := Order{
 		IdOrder:   orderID,
 		IdSale:    saleID,
@@ -66,11 +66,11 @@ func CreateOrder(saleID string, emailKey string, db *gorm.DB) {
 	db.Create(&order)
 }
 
-func GetOrders(db *gorm.DB, email string) []Order {
-	var user userDB.User
-	db.Where("email = ?", email).Find(&user)
+func GetOrders(db *gorm.DB, IdUser string) []Order {
+	// var user userDB.User
+	// db.Where("Id = ?", IdUser).Find(&user)
 	var orders []Order
-	db.Where("id_user = ?", user.ID).Find(&orders)
+	db.Where("id_user = ?", IdUser).Find(&orders)
 	return orders
 }
 
@@ -97,9 +97,11 @@ func GetInfoOrder(idOrder string, db *gorm.DB) OrderSaleInfo {
 	}
 
 	for i := range orders {
-		order.ProductList.NameProduct = append(order.ProductList.NameProduct, orders[i].NameProduct)
-		order.ProductList.CostProduct = append(order.ProductList.CostProduct, orders[i].CostProduct)
-		order.ProductList.CountProduct = append(order.ProductList.CountProduct, orders[i].CountProduct)
+		order.ProductList = append(order.ProductList, ProductList{
+			NameProduct:  orders[i].NameProduct,
+			CostProduct:  orders[i].CostProduct,
+			CountProduct: orders[i].CountProduct,
+		})
 	}
 	return order
 }
