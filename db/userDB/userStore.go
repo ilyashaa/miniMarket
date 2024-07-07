@@ -9,7 +9,6 @@ import (
 
 type User struct {
 	gorm.Model
-	ID           uint   `gorm:"type:uuid; primaryKey"`
 	Email        string `gorm:"unique"`
 	Password     string
 	Nickname     string    `gorm:"type:varchar(15); default:Nickname"`

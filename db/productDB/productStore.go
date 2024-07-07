@@ -22,7 +22,6 @@ func LocalProduct(db *gorm.DB) ([]Product, error) {
 func GetPriceProduct(db *gorm.DB, idsProducts []int) (map[int]float64, error) {
 	priceProduct := make(map[int]float64)
 	var products []Product
-	// SQL: "Select * FROM products WHERE id in(id1,id2...)" - перевести в Go
 	result := db.Select("id", "price").Where("id IN ?", idsProducts).Find(&products)
 	if result.Error != nil {
 		return nil, result.Error

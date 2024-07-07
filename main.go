@@ -90,11 +90,12 @@ func main() {
 				}
 			}
 		}
-		saleID, err := saleDB.CreateSale(allCostProducts, selectedItems, db)
+		saleID, err := saleDB.CreateSale(allCostProducts, selectedItems, idAndPrice, db)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
+			c.Redirect(http.StatusSeeOther, "http://localhost:8080/error")
 		}
-		saleDB.AddProductsToSale(saleID, selectedItems, idAndPrice, db)
+
 		IdUser, err := c.Cookie("IdUser")
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
@@ -171,6 +172,10 @@ func main() {
 		birthDate := c.PostForm("birthdayDate")
 		userDB.UpdateInfoSQL(email, nickname, birthDate, db)
 		c.Redirect(http.StatusSeeOther, "http://localhost:8080/user")
+	})
+
+	router.GET("/error", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "error.html", gin.H{})
 	})
 
 	router.LoadHTMLGlob("templates/*")

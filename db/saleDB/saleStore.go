@@ -24,11 +24,11 @@ type ProductsInSale struct {
 	CountProduct int             `gorm:"type:integer"`
 }
 
-func CreateSale(cost float64, selectedProducts map[int]int, db *gorm.DB) (string, error) { // + возвращать id, error
+func CreateSale(cost float64, selectedProducts map[int]int, idAndPrice map[int]float64, db *gorm.DB) (string, error) { // + возвращать id, error
 	saleTime := time.Now().UTC()
 	saleId, err := gonanoid.New()
 	if err != nil {
-		return "0", err // доработать
+		return "0", err
 	}
 	allCost := decimal.NewFromFloat(cost)
 	sale := Sale{
@@ -36,14 +36,18 @@ func CreateSale(cost float64, selectedProducts map[int]int, db *gorm.DB) (string
 		AllCost:  allCost,
 		SaleTime: saleTime,
 	}
-	result := db.Create(&sale)
-	if result.Error != nil {
-		fmt.Printf("error: %v\n", result.Error)
-	}
-	return sale.Id, nil
+	err1 := db.Transaction(func(db *gorm.DB) error {
+		result := db.Create(&sale)
+		if result.Error != nil {
+			fmt.Printf("error: %v\n", result.Error)
+			return result.Error
+		}
+		return AddProductsToSale(sale.Id, selectedProducts, idAndPrice, db)
+	})
+	return sale.Id, err1
 }
 
-func AddProductsToSale(saleID string, selectedProducts map[int]int, idAndPrice map[int]float64, db *gorm.DB) {
+func AddProductsToSale(saleID string, selectedProducts map[int]int, idAndPrice map[int]float64, db *gorm.DB) error {
 	for idProduct, countProduct := range selectedProducts {
 		productInSale := ProductsInSale{
 			IdSale:       saleID,
@@ -56,4 +60,5 @@ func AddProductsToSale(saleID string, selectedProducts map[int]int, idAndPrice m
 			fmt.Printf("error: %v\n", result.Error)
 		}
 	}
+	return nil
 }

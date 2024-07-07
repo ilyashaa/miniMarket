@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ошибка</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .message {
+            color: red;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .main-menu-button {
+            font-size: 1em;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+        }
+        .main-menu-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="message" id="errorMessage"></div>
+    <a href="home.html" class="main-menu-button">Главное меню</a>
+
+    <script>
+        const errorMessage = "Произошла ошибка. Пожалуйста, попробуйте снова позже.";
+        document.getElementById('errorMessage').innerText = errorMessage;
+    </script>
+</body>
+</html>
