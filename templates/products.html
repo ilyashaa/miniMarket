@@ -116,7 +116,7 @@
         {{ range .products }}
         <div class="product">
             <img src="{{ .Image }}" alt="{{ .Name }}">
-            <div class="product-name">{{ .ProductName }}</div>
+            <div class="product-name">{{ .Name }}</div>
             <div class="product-price">{{ print .Price " руб./кг" }}</div>
             <button class="add-button" data-id="{{ .Id }}" data-name="{{ .Name }}" onclick="addToCart(this)">+</button>
             <button class="remove-button" data-id="{{ .Id }}" data-name="{{ .Name }}" onclick="removeFromCart(this)">-</button>

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 
 	"miniMarket/auth"
@@ -20,6 +21,8 @@ import (
 )
 
 func main() {
+
+	var logger = log.New(os.Stdout, "[INFO] ", log.Ldate|log.Ltime)
 
 	db := StartDB()
 
@@ -92,8 +95,9 @@ func main() {
 		}
 		saleID, err := saleDB.CreateSale(allCostProducts, selectedItems, idAndPrice, db)
 		if err != nil {
-			log.Panic(err)
+			logger.Println(err)
 			c.Redirect(http.StatusSeeOther, "http://localhost:8080/error")
+			return
 		}
 
 		IdUser, err := c.Cookie("IdUser")
@@ -114,7 +118,7 @@ func main() {
 	})
 
 	router.GET("/home", func(c *gin.Context) {
-		email, err := c.Cookie("email")
+		email, err := c.Cookie("idUser")
 		if err != nil {
 			email = "пользователь"
 		}
