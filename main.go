@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -15,7 +16,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-redis/redis/v8"
+
 	"github.com/gin-gonic/gin"
+
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,11 +33,18 @@ func main() {
 
 	defer CloseDB(db)
 
+	rdb := connectToRedis()
+	defer rdb.Close()
+
 	db.AutoMigrate(&userDB.User{}, &productDB.Product{}, &saleDB.Sale{}, &saleDB.ProductsInSale{}, &orderDB.Order{})
 
 	router := gin.Default()
 
 	router.GET("/author", func(c *gin.Context) {
+		err := setValue(rdb, "author", "true")
+		if err != nil {
+			log.Fatal(err)
+		}
 		c.HTML(http.StatusOK, "author.html", gin.H{})
 	})
 
@@ -203,6 +214,41 @@ func main() {
 	})
 
 	router.Run(":8080")
+}
+
+var ctx = context.Background()
+
+func connectToRedis() *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "mypassword",
+		DB:       0,
+	})
+
+	_, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		panic(err)
+	}
+
+	return rdb
+}
+
+func setValue(rdb *redis.Client, key string, value string) error {
+	err := rdb.Set(ctx, key, value, 0).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getValue(rdb *redis.Client, key string) (string, error) {
+	val, err := rdb.Get(ctx, key).Result()
+	if err == redis.Nil {
+		return "", fmt.Errorf("ключ не найден")
+	} else if err != nil {
+		return "", err
+	}
+	return val, nil
 }
 
 func StartDB() *gorm.DB {
