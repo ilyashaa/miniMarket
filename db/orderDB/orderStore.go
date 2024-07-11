@@ -47,12 +47,12 @@ type ProductList struct {
 	CountProduct int
 }
 
-func CreateOrder(saleID string, IdUser string, db *gorm.DB) {
+func CreateOrder(saleID string, IdUser string, db *gorm.DB) Order {
 	orderTime := time.Now().UTC()
 	orderID, err := gonanoid.New()
 	if err != nil {
 		log.Fatal(err)
-		return
+
 	}
 	var user userDB.User
 	db.Where("id = ?", IdUser).First(&user)
@@ -61,14 +61,15 @@ func CreateOrder(saleID string, IdUser string, db *gorm.DB) {
 		IdSale:    saleID,
 		IdUser:    user.ID,
 		TimeOrder: orderTime,
-		Status:    "Pending",
+		Status:    "Ожидает оплаты",
 	}
+
 	db.Create(&order)
+	return order
 }
 
 func GetOrders(db *gorm.DB, IdUser string) []Order {
-	// var user userDB.User
-	// db.Where("Id = ?", IdUser).Find(&user)
+
 	var orders []Order
 	db.Where("id_user = ?", IdUser).Find(&orders)
 	return orders
@@ -103,5 +104,15 @@ func GetInfoOrder(idOrder string, db *gorm.DB) OrderSaleInfo {
 			CountProduct: orders[i].CountProduct,
 		})
 	}
+	return order
+}
+
+func UpdateInfoOrder(idOrder string, db *gorm.DB) OrderSaleInfo {
+	order := GetInfoOrder(idOrder, db)
+	order.Status = "Оплачен"
+	var orderSQL Order
+	db.Where("id_order = ?", idOrder).First(&orderSQL)
+	orderSQL.Status = "Оплачен"
+	db.Save(&orderSQL)
 	return order
 }

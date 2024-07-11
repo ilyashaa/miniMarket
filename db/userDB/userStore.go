@@ -33,7 +33,6 @@ func AuthorizeSQL(email string, password string, db *gorm.DB) (User, error) {
 	if result.Error != nil {
 		return User{}, result.Error
 	}
-
 	return user, nil
 
 }

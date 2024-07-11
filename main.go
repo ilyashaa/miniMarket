@@ -11,6 +11,7 @@ import (
 	productDB "miniMarket/db/productDB"
 	saleDB "miniMarket/db/saleDB"
 	userDB "miniMarket/db/userDB"
+	sendMail "miniMarket/sendEmail"
 	"net/http"
 	"time"
 
@@ -105,13 +106,22 @@ func main() {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		orderDB.CreateOrder(saleID, IdUser, db)
+		order := orderDB.CreateOrder(saleID, IdUser, db)
+		sendMail.SendEmailOrder(order, db)
 		c.Redirect(http.StatusSeeOther, "http://localhost:8080/product")
 	})
 
 	router.GET("/order/:id", func(c *gin.Context) {
 		orderID := c.Param("id")
 		order := orderDB.GetInfoOrder(orderID, db)
+		c.HTML(http.StatusOK, "order.html", gin.H{
+			"order": order,
+		})
+	})
+
+	router.POST("/order/:id", func(c *gin.Context) {
+		orderID := c.Param("id")
+		order := orderDB.UpdateInfoOrder(orderID, db)
 		c.HTML(http.StatusOK, "order.html", gin.H{
 			"order": order,
 		})
@@ -131,6 +141,7 @@ func main() {
 		email := c.PostForm("email")
 		password := c.PostForm("password")
 		result := auth.Register(email, password, db)
+		sendMail.SendEmailRegister(email)
 		c.HTML(http.StatusOK, "hello.html", gin.H{
 			"Email": result,
 		})
@@ -141,12 +152,13 @@ func main() {
 		password := c.PostForm("password")
 		expiration := time.Now().Add(24 * time.Hour)
 		result := auth.Authorize(email, password, db)
-		cookieEmail := http.Cookie{
+		cookieId := http.Cookie{
 			Name:    "IdUser",
 			Value:   strconv.FormatUint(uint64(result.ID), 10),
 			Expires: expiration,
 		}
-		http.SetCookie(c.Writer, &cookieEmail)
+		http.SetCookie(c.Writer, &cookieId)
+
 		c.HTML(http.StatusOK, "home.html", gin.H{
 			"Email": result.Email,
 		})

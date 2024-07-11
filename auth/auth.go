@@ -48,12 +48,12 @@ func Authorize(email, password string, db *gorm.DB) store.User {
 
 	user, err := store.AuthorizeSQL(email, password, db)
 	if err != nil {
-		log.Fatal(err)
+		log.Panicln(err)
 	}
 
 	match, err := argon2id.ComparePasswordAndHash(password, user.Password)
 	if err != nil {
-		log.Fatal(err)
+		log.Panicln(err)
 	}
 
 	if !match {

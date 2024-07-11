@@ -51,6 +51,22 @@
         .order-info tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+        .pay-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 20px 40px;
+            font-size: 18px;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .pay-button-center {
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -66,6 +82,12 @@
             <p><strong>Время заказа:</strong> {{.order.TimeOrder.Format "2006-01-02"}}</p>
             <p><strong>Статус:</strong> {{.order.Status}}</p>
             <p><strong>Общая стоимость:</strong> {{.order.AllCost}} руб.</p>
+
+            {{if eq .order.Status "Ожидает оплаты"}}
+            <form action="/order/{{.order.IdOrder}}" method="POST" class="pay-button-center">
+                <button type="submit" class="pay-button">Оплатить</button>
+            </form>
+            {{end}}
             
             <h2>Выбранные товары</h2>
             <table>
