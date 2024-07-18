@@ -41,10 +41,6 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/author", func(c *gin.Context) {
-		err := setValue(rdb, "author", "true")
-		if err != nil {
-			log.Fatal(err)
-		}
 		c.HTML(http.StatusOK, "author.html", gin.H{})
 	})
 
@@ -231,24 +227,6 @@ func connectToRedis() *redis.Client {
 	}
 
 	return rdb
-}
-
-func setValue(rdb *redis.Client, key string, value string) error {
-	err := rdb.Set(ctx, key, value, 0).Err()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func getValue(rdb *redis.Client, key string) (string, error) {
-	val, err := rdb.Get(ctx, key).Result()
-	if err == redis.Nil {
-		return "", fmt.Errorf("ключ не найден")
-	} else if err != nil {
-		return "", err
-	}
-	return val, nil
 }
 
 func StartDB() *gorm.DB {
