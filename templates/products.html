@@ -18,7 +18,7 @@
             justify-content: center;
         }
 
-        .product {
+        .product, .order {
             background: white;
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
@@ -34,20 +34,19 @@
             object-fit: cover;
         }
 
-        .product-name {
+        .product-name, .order-id {
             font-size: 18px;
             margin-top: 10px;
             color: #333;
         }
 
-        .product-price {
+        .product-price, .order-status {
             font-size: 16px;
             margin-top: 5px;
             color: #007bff;
         }
 
-        .add-button,
-        .remove-button {
+        .add-button, .remove-button, .buy-button, .view-order-button {
             background: #007bff;
             color: white;
             border: none;
@@ -56,20 +55,15 @@
             cursor: pointer;
         }
 
-        .buy-button {
-            background: #007bff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-            margin-top: 20px;
+        .view-order-button {
+            background-color: green;
+            padding: 5px 10px;
         }
 
-        .selected-products {
-            margin-top: 20px;
+        .view-order-button:hover {
+            background-color: darkgreen;
         }
-
+        
         .orders {
             display: flex;
             flex-wrap: wrap;
@@ -77,38 +71,6 @@
             justify-content: center;
         }
 
-        .order {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
-            padding: 20px;
-            text-align: center;
-            width: 200px;
-            margin-bottom: 20px;
-        }
-
-        .order-id {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .order-status {
-            margin-bottom: 10px;
-            color: #007bff;
-        }
-
-        .view-order-button {
-            padding: 5px 10px;
-            background-color: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .view-order-button:hover {
-            background-color: darkgreen;
-        }
     </style>
 </head>
 <body>
@@ -119,8 +81,8 @@
             <img src="{{ .Image }}" alt="{{ .Name }}">
             <div class="product-name">{{ .Name }}</div>
             <div class="product-price">{{ print .Price " руб./кг" }}</div>
-            <button class="add-button" data-id="{{ .Id }}" data-name="{{ .Name }}" onclick="addToCart(this)">+</button>
-            <button class="remove-button" data-id="{{ .Id }}" data-name="{{ .Name }}" onclick="removeFromCart(this)">-</button>
+            <button class="add-button" data-id="{{ .Id }}" data-name="{{ .Name }}" hx-post="/cart/add" >+</button>
+            <button class="remove-button" data-id="{{ .Id }}" data-name="{{ .Name }}" hx-post="/cart/remove">-</button>
         </div>
         {{ else }}
         <p>Нет доступных продуктов.</p>
@@ -129,8 +91,8 @@
     
     <div class="selected-products">
         <h3>Выбранные товары:</h3>
-        <ul id="selected-items"></ul>
-        <button class="buy-button" onclick="buyItems()">Купить</button>
+        <ul id="selected-items" hx-get="/cart" hx-trigger="load"></ul>
+        <button class="buy-button" hx-post="/products/buy" hx-on="htmx:afterRequest: buySuccess">Купить</button>
     </div>
 
     <h4>История заказов:</h4>
@@ -147,69 +109,10 @@
     </div>
 
     <script>
-        const selectedItems = {};
-
-        function addToCart(button) {
-            const itemId = button.getAttribute('data-id');
-            const itemName = button.getAttribute('data-name');
-            
-            if (selectedItems[itemId]) {
-                selectedItems[itemId].count++;
-            } else {
-                selectedItems[itemId] = { name: itemName, count: 1 };
-            }
-
-            updateSelectedItemsList();
+        function buySuccess(evt) {
+            alert("Покупка завершена успешно!");
+            document.getElementById("selected-items").innerHTML = "";
         }
-
-        function removeFromCart(button) {
-            const itemId = button.getAttribute('data-id');
-
-            if (selectedItems[itemId] && selectedItems[itemId].count > 0) {
-                selectedItems[itemId].count--;
-                if (selectedItems[itemId].count === 0) {
-                    delete selectedItems[itemId];
-                }
-            }
-
-            updateSelectedItemsList();
-        }
-
-        function updateSelectedItemsList() {
-            const selectedItemsList = document.getElementById("selected-items");
-            selectedItemsList.innerHTML = "";
-
-            Object.values(selectedItems).forEach(({ name, count }) => {
-                const listItem = document.createElement("li");
-                listItem.textContent = `${name} x${count}`;
-                selectedItemsList.appendChild(listItem);
-            });
-        }
-
-        function buyItems() {
-
-            const itemsToBuy = {};
-            Object.keys(selectedItems).forEach(itemId => {
-    itemsToBuy[itemId] = selectedItems[itemId].count;
-});
-fetch("/products", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(itemsToBuy)
-    })
-    .then(response => {
-        if(response.ok) {
-            window.location.href = "/products"; 
-        } else {
-            alert("Произошла ошибка при оформлении заказа");
-        }
-    })
-    .catch(error => {
-        console.error("Ошибка:", error);
-    });
-}
     </script>
 </body>
 </html>

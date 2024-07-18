@@ -48,11 +48,38 @@ func main() {
 		c.HTML(http.StatusOK, "register.html", gin.H{})
 	})
 
+	var cart = map[string]int{
+		"meat": 0,
+		"fish": 0,
+		"bird": 0,
+	}
+
+	router.GET("/test", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "test.html", gin.H{
+			"cart": cart,
+		})
+	})
+
+	router.POST("/add/:item", func(c *gin.Context) {
+		item := c.Param("item")
+		if _, exists := cart[item]; exists {
+			cart[item]++
+		}
+		c.Redirect(http.StatusSeeOther, "http://localhost:8080/test")
+	})
+
+	router.POST("/remove/:item", func(c *gin.Context) {
+		item := c.Param("item")
+		if _, exists := cart[item]; exists && cart[item] > 0 {
+			cart[item]--
+		}
+		c.Redirect(http.StatusSeeOther, "http://localhost:8080/test")
+	})
+
 	router.GET("/products", func(c *gin.Context) {
 		IdUser, err := c.Cookie("IdUser")
 		if err != nil {
 			IdUser = ""
-			return
 		}
 		orders := orderDB.GetOrders(db, IdUser)
 		products, err := productDB.LocalProduct(db)

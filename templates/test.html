@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <script src="https://unpkg.com/htmx.org@1.8.5"></script>
+    <style>
+        .item {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shopping Cart</h1>
+
+    <div class="item" id="meat">
+        <span>Meat: </span>
+        <button hx-post="/add/meat" hx-swap="outerHTML" hx-target="body">+</button>
+        <button hx-post="/remove/meat" hx-swap="outerHTML" hx-target="body">-</button>
+        <span id="meat-quantity">Quantity: {{.cart.meat}}</span>
+    </div>
+
+    <div class="item" id="fish">
+        <span>Fish: </span>
+        <button hx-post="/add/fish" hx-swap="outerHTML" hx-target="body">+</button>
+        <button hx-post="/remove/fish" hx-swap="outerHTML" hx-target="body">-</button>
+        <span id="fish-quantity">Quantity: {{.cart.fish}}</span>
+    </div>
+
+    <div class="item" id="bird">
+        <span>Poultry: </span>
+        <button hx-post="/add/bird" hx-swap="outerHTML" hx-target="body">+</button>
+        <button hx-post="/remove/bird" hx-swap="outerHTML" hx-target="body">-</button>
+        <span id="bird-quantity">Quantity: {{.cart.bird}}</span>
+    </div>
+</body>
+</html>
